@@ -6,7 +6,15 @@ ACCESS_PAIRS = [
     (
         "2500103229-hDp4JG4zj1BaORNg9vd2Dkq8YLMtiNIYPW4QrlA",
         "SuwYfgKEdjbPQ5uLPCQzkp2aC4DPsnrGfnrNcizhUvDEc",
-    )
+    ),
+    (
+        '1077975711607083008-FK1SkjUXlr30jAd5UVxzU4b8Y5FEOp',
+        'pfGTqxH34BH8iLYpvQGhRjDqflYdtquegtrYySSoF2NWF'
+    ),
+    (
+        '1077970775313993729-lrCK9ZGCw34oMt8zVfmkOEnAtRfBPb',
+        'Etl3o7nk81X0mf5AsNJpc6znckikpzrJ7OaI9x5zUFpWk'
+    ),
 ]
 ACCESS_TOKEN, ACCESS_SECRET = ACCESS_PAIRS[0]
 CONSUMER_KEY = "f7SdIH8WMrLE9JmHVqpsQAO7T"
