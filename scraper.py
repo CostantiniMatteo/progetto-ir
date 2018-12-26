@@ -1,4 +1,4 @@
-import json, tweepy, psycopg2, sys, multiprocessing
+import json, tweepy, psycopg2, sys, multiprocessing, threading
 from tqdm import tqdm
 
 
@@ -6,15 +6,15 @@ ACCESS_PAIRS = [
     (
         "2500103229-hDp4JG4zj1BaORNg9vd2Dkq8YLMtiNIYPW4QrlA",
         "SuwYfgKEdjbPQ5uLPCQzkp2aC4DPsnrGfnrNcizhUvDEc",
-    ),
+    ),  # Costa
     (
-        '1077975711607083008-FK1SkjUXlr30jAd5UVxzU4b8Y5FEOp',
-        'pfGTqxH34BH8iLYpvQGhRjDqflYdtquegtrYySSoF2NWF'
-    ),
+        "1077975711607083008-FK1SkjUXlr30jAd5UVxzU4b8Y5FEOp",
+        "pfGTqxH34BH8iLYpvQGhRjDqflYdtquegtrYySSoF2NWF",
+    ),  # Dario
     (
-        '1077970775313993729-lrCK9ZGCw34oMt8zVfmkOEnAtRfBPb',
-        'Etl3o7nk81X0mf5AsNJpc6znckikpzrJ7OaI9x5zUFpWk'
-    ),
+        "1077970775313993729-lrCK9ZGCw34oMt8zVfmkOEnAtRfBPb",
+        "Etl3o7nk81X0mf5AsNJpc6znckikpzrJ7OaI9x5zUFpWk",
+    ),  # Michele
 ]
 ACCESS_TOKEN, ACCESS_SECRET = ACCESS_PAIRS[0]
 CONSUMER_KEY = "f7SdIH8WMrLE9JmHVqpsQAO7T"
@@ -36,8 +36,8 @@ def get_db_connection(db="progetto_ir", user="matteo", host="localhost", pw=""):
         )
         conn.autocommit = True
     except:
-        print("I am unable to connect to the database. ¯\\_(ツ)_/¯")
-        raise Exception("I am unable to connect to the database. ¯\\_(ツ)_/¯")
+        print("Unable to connect to the database. ¯\\_(ツ)_/¯")
+        raise Exception("Unable to connect to the database. ¯\\_(ツ)_/¯")
 
     return conn
 
@@ -111,16 +111,14 @@ def process_tweet(tweet):
     return (tweet_id, screen_name, json.dumps(tweet._json))
 
 
-def process_users(users, conn, api, id=0):
-    i = 1
-    total = len(users)
-    for screen_name, processed in users:
+def process_users(queue, conn, api, id=0):
+    while not queue.empty():
+        screen_name, processed = queue.get()
         if processed:
+            queue.task_done()
             continue
-        print(
-            f"[{i}/{total}] (id: {id}) Processing user {screen_name}.", end=" "
-        )
-        sys.stdout.flush()
+
+        print(f"(id: {id}) Processing user {screen_name}.")
 
         status_cursor = tweepy.Cursor(
             api.user_timeline, screen_name=screen_name, tweet_mode="extended"
@@ -131,7 +129,8 @@ def process_users(users, conn, api, id=0):
                 process_tweet(tweet) for tweet in status_cursor.items(3200)
             ]
         except Exception:
-            print("Failed to fetch tweets.")
+            print(f"(id: {id} Failed to fetch tweets for user {screen_name}.")
+            queue.task_done()
             continue
 
         cur = conn.cursor()
@@ -145,24 +144,30 @@ def process_users(users, conn, api, id=0):
                 "UPDATE twitter_user SET processed = TRUE WHERE user_id = %s;",
                 (screen_name,),
             )
-            print("Done.")
+            print(f"(id: {id}) User {screen_name} done.")
         except Exception:
-            print(f"Failed when communicating with database.")
+            print(f"(id: {id}) Failed when communicating with database.")
             cur.execute("DELETE FROM tweets WHERE user_id = %s", (screen_name,))
         finally:
             cur.close()
-            i += 1
+            queue.task_done()
 
 
-def chunks(l, n):
-    x = int(len(l) / (1+(n-1)*3/5)) + 1
-    first = l[:x]
-    rest = l[x:]
-    n = n - 1
-    step = len(rest) // n
-    yield first
-    for i in range(0, len(rest), step):
-        yield rest[i : i + step]
+class LoggedJoinableQueue(object):
+    def __init__(self, maxsize=0):
+        self._jq = multiprocessing.JoinableQueue(maxsize=maxsize)
+        self._done = 0
+        self._done_lock = threading.Lock()
+
+    def __getattr__(self, name):
+        return getattr(self._jq, name)
+
+    def task_done(self):
+        self._jq.task_done()
+        with self._done_lock:
+            self._done += 1
+            print(f"Item processed")
+            sys.stdout.flush()
 
 
 if __name__ == "__main__":
@@ -178,35 +183,35 @@ if __name__ == "__main__":
 
     cur = conns[0].cursor()
     cur.execute(
-        """
-        select user_id, processed
-        from (select user_id, followers, topic, processed, row_number()
-            over (partition by topic order by followers desc) as rownum
-            from twitter_user) tmp where rownum <= {threshold};
-        """.format(
-            threshold=THRESHOLD
-        )
+        # """
+        # select user_id, processed
+        # from (select user_id, followers, topic, processed, row_number()
+        #     over (partition by topic order by followers desc) as rownum
+        #     from twitter_user) tmp where rownum <= {threshold};
+        # """.format(
+        #     threshold=THRESHOLD
+        # )
+        "select user_id, processed from twitter_user where processed = false order by followers desc limit(1000);"
     )
     users = cur.fetchall()
     cur.close()
 
-    # TODO: Maybe use a multiprocess queue
-    users_sublists = list(chunks(users, len(ACCESS_PAIRS) + 1))
+    queue = LoggedJoinableQueue(maxsize=len(users))
+    for user in users:
+        queue.put(user)
 
-    assert len(users_sublists) == len(conns) == len(apis)
+    assert len(conns) == len(apis)
 
     jobs = [
         multiprocessing.Process(
-            target=process_users, args=(users_sublists[i], conns[i], apis[i], i)
+            target=process_users, args=(queue, conns[i], apis[i], i)
         )
-        for i in range(0, len(users_sublists))
+        for i in range(0, len(apis))
     ]
 
     for j in jobs:
         j.start()
-    for j in jobs:
-        j.join()
-
+    queue.join()
 
 # La query della vita:
 # select * from (select user_id, followers, topic, row_number()
