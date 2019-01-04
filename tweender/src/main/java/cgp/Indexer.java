@@ -30,17 +30,23 @@ public class Indexer {
 
     public static List<TwitterUser> selectTopNUsersPerTopic(int n) throws Exception {
         String query = "select *\n" +
-                "from (select user_id, followers, topic, processed, row_number()\n" +
+                "from (select user_id, followers, topic, processed, json,row_number()\n" +
                 "over (partition by topic order by followers desc) as rownum\n" +
                 "from twitter_user) tmp where rownum <= " + n + ";";
+        
+        String query2 = "select * from twitter_user";
 
         Connection c = getConnection();
         Statement stmt = c.createStatement();
         ResultSet rs = stmt.executeQuery(query);
+             
 
         ArrayList result = new ArrayList<TwitterUser>();
         while (rs.next()) {
-            TwitterUser user = new TwitterUser();
+            //String json = rs.getString("json");
+            //System.out.println(json);
+            TwitterUser user = new TwitterUser(rs.getString("json"), rs.getString("topic"));
+            result.add(user);
         }
         rs.close();
         stmt.close();

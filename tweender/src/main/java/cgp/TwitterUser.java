@@ -1,5 +1,7 @@
 package cgp;
 
+import org.json.*;
+
 public class TwitterUser {
     public String userId;
     public String name;
@@ -8,12 +10,12 @@ public class TwitterUser {
     public String topic;
     public String location;
     public String description;
-    public boolean isVerified;
+    public boolean verified;
     public long listedCount;
     public long favouritesCount;
-    public long statusedCount;
+    public long statusesCount;
 
-    public TwitterUser(String userId, String name, long followersCount, long friendsCount, String topic, String location, String description, boolean isVerified, long listedCount, long favouritesCount, long statusedCount) {
+    public TwitterUser(String userId, String name, long followersCount, long friendsCount, String topic, String location, String description, boolean verified, long listedCount, long favouritesCount, long statusesCount) {
         this.userId = userId;
         this.name = name;
         this.followersCount = followersCount;
@@ -21,13 +23,24 @@ public class TwitterUser {
         this.topic = topic;
         this.location = location;
         this.description = description;
-        this.isVerified = isVerified;
+        this.verified = verified;
         this.listedCount = listedCount;
         this.favouritesCount = favouritesCount;
-        this.statusedCount = statusedCount;
+        this.statusesCount = statusesCount;
     }
 
-    public TwitterUser() {
-
+    public TwitterUser(String json, String topic) {
+    	JSONObject obj = new JSONObject(json);
+        this.userId = obj.getString("id_str");
+        this.name = obj.getString("name");
+        this.followersCount = obj.getLong("followers_count");
+        this.friendsCount = obj.getLong("friends_count");
+        this.topic = topic;
+        this.location = obj.getString("location");
+        this.description = obj.getString("description");
+        this.verified = obj.getBoolean("verified");
+        this.listedCount = obj.getLong("listed_count");
+        this.favouritesCount = obj.getLong("favourites_count");
+        this.statusesCount = obj.getLong("statuses_count");
     }
 }
