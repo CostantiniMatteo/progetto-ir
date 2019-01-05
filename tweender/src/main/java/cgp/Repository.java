@@ -27,7 +27,7 @@ public class Repository {
                 "from (select user_id, followers, topic, processed, json,row_number()\n" +
                 "over (partition by topic order by followers desc) as rownum\n" +
                 "from twitter_user) tmp where rownum <= " + n + ";";
-        
+
         var c = getConnection();
         var stmt = c.createStatement();
         var rs = stmt.executeQuery(query);
@@ -53,7 +53,7 @@ public class Repository {
 
         var result = new ArrayList<Tweet>();
         while (rs.next()) {
-            var tweet = new Tweet(rs.getString("json"), rs.getString("user_id"));
+            var tweet = new Tweet(rs.getString("json"), user);
             result.add(tweet);
         }
         rs.close();

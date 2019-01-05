@@ -11,6 +11,7 @@ import java.util.List;
 
 public class Tweet {
     public long createdAt;
+    public TwitterUser user;
     public String tweetId;
     public String text;
     public List<String> hashtags;
@@ -34,7 +35,9 @@ public class Tweet {
         }
     }
 
-    public Tweet(String json, String userName) {
+    public Tweet(String json, TwitterUser user) {
+        this.user = user;
+
         var obj = new JSONObject(json);
         this.createdAt = getTimestampFromDateString(obj.getString("created_at"));
         this.tweetId = obj.getString("id_str");
