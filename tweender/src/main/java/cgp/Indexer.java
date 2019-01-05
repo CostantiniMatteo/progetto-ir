@@ -34,8 +34,6 @@ public class Indexer {
                 "over (partition by topic order by followers desc) as rownum\n" +
                 "from twitter_user) tmp where rownum <= " + n + ";";
         
-        String query2 = "select * from twitter_user";
-
         Connection c = getConnection();
         Statement stmt = c.createStatement();
         ResultSet rs = stmt.executeQuery(query);
@@ -43,8 +41,6 @@ public class Indexer {
 
         ArrayList result = new ArrayList<TwitterUser>();
         while (rs.next()) {
-            //String json = rs.getString("json");
-            //System.out.println(json);
             TwitterUser user = new TwitterUser(rs.getString("json"), rs.getString("topic"));
             result.add(user);
         }

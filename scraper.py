@@ -15,6 +15,14 @@ ACCESS_PAIRS = [
         "1077970775313993729-lrCK9ZGCw34oMt8zVfmkOEnAtRfBPb",
         "Etl3o7nk81X0mf5AsNJpc6znckikpzrJ7OaI9x5zUFpWk",
     ),  # Michele
+    (
+        '725783937801457665-HYNvmGyC10mirvcFbOBrS3Ni2s7MkqP',
+        'daE7dJCXdC9kq9GYDw4H620FHN0xcPFSmmzhJr8XexCqh'
+    ),  # Jata
+    (
+        '1052916691137646593-DOdBeWfAsXn8dCesC3hHMYo1DLqNio',
+        '0GUHjBbVhgFdgsilL8KB9nRRS560eFd7avSbRjBr4wOds'
+    ),  # Filippo
 ]
 ACCESS_TOKEN, ACCESS_SECRET = ACCESS_PAIRS[0]
 CONSUMER_KEY = "f7SdIH8WMrLE9JmHVqpsQAO7T"
