@@ -30,9 +30,9 @@ public class TwitterUser {
     }
 
     public TwitterUser(String json, String topic) {
-    	JSONObject obj = new JSONObject(json);
+    	var obj = new JSONObject(json);
         this.userId = obj.getString("id_str");
-        this.name = obj.getString("name");
+        this.name = obj.getString("screen_name");
         this.followersCount = obj.getLong("followers_count");
         this.friendsCount = obj.getLong("friends_count");
         this.topic = topic;
