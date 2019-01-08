@@ -1,17 +1,21 @@
 package cgp;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.util.ArrayList;
-import java.util.List;
 
 public class Repository {
-    static String HOST = "jdbc:postgresql://157.230.25.215:5432/progetto_ir";
+//    static String HOST = "jdbc:postgresql://157.230.25.215:5432/progetto_ir";
+    static String HOST = "jobd:postgresql://localhost:5432/progetto_ir";
+    static String USER = "matteo";
+//    static String PASSWORD = "correct horse battery staple";
+    static String PASSWORD = "";
 
     public static Connection getConnection() throws Exception {
         Connection c = null;
         try {
             Class.forName("org.postgresql.Driver");
-            c = DriverManager.getConnection(HOST, "matteo", "correct horse battery staple");
+            c = DriverManager.getConnection(HOST, USER, PASSWORD);
         } catch (Exception e) {
             e.printStackTrace();
             System.err.println(e.getClass().getName() + ": " + e.getMessage());
@@ -28,6 +32,18 @@ public class Repository {
                 "over (partition by topic order by followers desc) as rownum\n" +
                 "from twitter_user) tmp where rownum <= " + n + ";";
 
+        return queryUsers(query);
+    }
+
+    public static ArrayList<TwitterUser> selectTopNUsersByTopic(int n, String topic) throws Exception {
+        String query = "select *\n" +
+                "from twitter_user where topic = '" + topic + "' " +
+                "order by followers desc limit(" + n + ");";
+
+        return queryUsers(query);
+    }
+
+    private static ArrayList<TwitterUser> queryUsers(String query) throws Exception {
         var c = getConnection();
         var stmt = c.createStatement();
         var rs = stmt.executeQuery(query);
@@ -43,6 +59,7 @@ public class Repository {
 
         return result;
     }
+
 
     public static ArrayList<Tweet> selectUserTweets(TwitterUser user) throws Exception {
         String query = "select * from tweets where user_id = '" + user.name + "';";

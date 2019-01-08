@@ -1,52 +1,63 @@
 package cgp;
 
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import me.tongfei.progressbar.ProgressBar;
+import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.search.similarities.LMDirichletSimilarity;
 import org.apache.lucene.store.FSDirectory;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
 public class Indexer {
+    public static final String INDEX_PATH = "/Users/matteo/git/progetto-ir/index";
+    public class Fields {
+        public static final String TWEET_ID = "tweetId";
+        public static final String DATE = "date";
+        public static final String TEXT = "text";
+        public static final String IS_REPLY = "isReply";
+        public static final String IS_QUOTE = "isQuote";
+        public static final String HAS_URLS = "hasUrls";
+        public static final String HAS_MEDIA = "hasMedia";
+        public static final String RETWEET_COUNT = "retweetCount";
+        public static final String FAVORITE_COUNT = "favoriteCount";
+        public static final String LANG = "lang";
+        public static final String HASHTAG = "hashtag";
+        public static final String USER = "user";
+        public static final String USER_FOLLOWERS = "userFollowers";
+        public static final String USER_FOLLOWING = "userFollowing";
+        public static final String USER_VERIFIED = "userVerified";
+    }
 
 
-    // TODO: Che cambia tra Field.Store.YES, Field.Store.NO
-    // TODO: Che vuol dire che è "indexed but not stored"?
     public static Document tweetToDocument(Tweet tweet) {
         var doc = new Document();
 
-        doc.add(new StringField("tweetId", tweet.tweetId, Field.Store.YES));
-        // TODO: Alternativa come nelle soluzioni del lab?
-        doc.add(new LongPoint("date", tweet.createdAt));
-//      date string formatted as yyyymmdd
-//      doc_idx.add(new SortedDocValuesField("date", new BytesRef(date)));
-//      doc_idx.add(new StoredField("date", date));
-        doc.add(new TextField("text", tweet.text, Field.Store.YES));
-        // TODO: Come gestiamo i boolean? Come cazzo si fa a creare un Field normale?
-//      var isReply = new Field("boolean", tweet.replyToId != null ? "true" : "false", null);
-//      var isQuote = new Field("boolean", tweet.quote ? "true" : "false", null);
-//      Questo è quello che veniva suggerito su SO (nel 2012)
-//      doc.add(new Field("boolean","1",Field.Store.NO,Field.Index.NOT_ANALYZED_NO_NORMS));
-
-        // TODO: È stored?
-        doc.add(new LongPoint("retweetCount", tweet.retweetCount));
-        doc.add(new LongPoint("favoriteCount", tweet.favoriteCount));
-
+        doc.add(new StringField(Fields.TWEET_ID, tweet.tweetId, Field.Store.YES));
+        doc.add(new StringField(Fields.USER, tweet.user.name, Field.Store.YES));
+        doc.add(new LongPoint(Fields.DATE, tweet.createdAt));
+        doc.add(new StoredField(Fields.DATE, tweet.createdAt));
+        doc.add(new TextField(Fields.TEXT, tweet.text, Field.Store.YES));
+        doc.add(new StringField(Fields.IS_REPLY, tweet.replyToId != null ? "true" : "false", Field.Store.YES));
+        doc.add(new StringField(Fields.IS_QUOTE, tweet.isQuote ? "true" : "false", Field.Store.YES));
+        doc.add(new StringField(Fields.HAS_URLS, tweet.urls.size() > 0 ? "true" : "false", Field.Store.YES));
+        doc.add(new StringField(Fields.HAS_MEDIA, tweet.media.size() > 0 ? "true" : "false", Field.Store.YES));
+        doc.add(new StringField(Fields.USER_VERIFIED, tweet.user.verified ? "true" : "false", Field.Store.YES));
+        doc.add(new LongPoint(Fields.RETWEET_COUNT, tweet.retweetCount));
+        doc.add(new StoredField(Fields.RETWEET_COUNT, tweet.retweetCount));
+        doc.add(new LongPoint(Fields.FAVORITE_COUNT, tweet.favoriteCount));
+        doc.add(new StoredField(Fields.FAVORITE_COUNT, tweet.favoriteCount));
+        doc.add(new LongPoint(Fields.USER_FOLLOWERS, tweet.user.followersCount));
+        doc.add(new StoredField(Fields.USER_FOLLOWERS, tweet.user.followersCount));
+        doc.add(new LongPoint(Fields.USER_FOLLOWING, tweet.user.friendsCount));
+        doc.add(new StoredField(Fields.USER_FOLLOWING, tweet.user.friendsCount));
+        doc.add(new StringField(Fields.LANG, tweet.lang, Field.Store.YES));
         for (var hashtag : tweet.hashtags) {
-            // TODO: La spelling correction viene fatta se cerco su uno StringField?
-            doc.add(new StringField("hashtag", hashtag, Field.Store.YES));
-            doc.add(new TextField("hashtag", hashtag, Field.Store.YES));
+            doc.add(new StringField(Fields.HASHTAG, hashtag, Field.Store.YES));
+            doc.add(new TextField(Fields.HASHTAG, hashtag, Field.Store.YES));
         }
-
-        // TODO: Che si fa con urls ed userMentions?
-        // Noi vogliamo usarle per cambiare lo score giusto?
-        // e.g. se menziona un utente con molto follower, score in più
-        // Però come vanno costruiti i field?
 
         return doc;
     }
@@ -54,20 +65,21 @@ public class Indexer {
     public static void createIndex(List<Tweet> tweets, String indexPath) {
         var path = Paths.get(indexPath);
         try {
-            var dr = FSDirectory.open(path);
-            var analyzer = new StandardAnalyzer();
-            var writer = new IndexWriterConfig(analyzer);
-            // TODO: Che cazzo è la LMDDirichletSimilarity?!
-            var similarity = new LMDirichletSimilarity(2000);
-            writer.setSimilarity(similarity);
-            var iw = new IndexWriter(dr, writer);
-            for (var tweet : tweets) {
-                iw.addDocument(tweetToDocument(tweet));
+            var directory = FSDirectory.open(path);
+            var analyzer = new EnglishAnalyzer();
+            var cfg = new IndexWriterConfig(analyzer);
+            var indexWriter = new IndexWriter(directory, cfg);
+            for (var tweet : ProgressBar.wrap(tweets, "Indexing")) {
+                indexWriter.addDocument(tweetToDocument(tweet));
             }
-            iw.close();
+            indexWriter.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void createIndex(List<Tweet> tweets) {
+        createIndex(tweets, INDEX_PATH);
     }
 
 }

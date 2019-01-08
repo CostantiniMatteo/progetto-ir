@@ -6,7 +6,6 @@ import org.json.JSONObject;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class Tweet {
@@ -24,6 +23,7 @@ public class Tweet {
     public boolean isQuote;
     public long retweetCount;
     public long favoriteCount;
+    public String lang;
 
     public class Media {
         public String type;
@@ -42,12 +42,12 @@ public class Tweet {
         this.createdAt = getTimestampFromDateString(obj.getString("created_at"));
         this.tweetId = obj.getString("id_str");
         this.text = obj.getString("full_text");
-        // TODO: Recuperare e parsare i valori se ci sono
         this.geo = null;
         this.coordinates = null;
         this.isQuote = obj.getBoolean("is_quote_status");
         this.retweetCount = obj.getLong("retweet_count");
         this.favoriteCount = obj.getLong("favorite_count");
+        this.lang = obj.getString("lang");
 
         var entities = obj.getJSONObject("entities");
         this.hashtags = stringListFromJsonArray(entities.getJSONArray("hashtags"), "text");
@@ -65,7 +65,7 @@ public class Tweet {
         }
 
         var replyObj = obj.get("in_reply_to_status_id_str");
-        this.replyToId = replyObj != null ? replyObj.toString() : null;
+        this.replyToId = replyObj != JSONObject.NULL ? replyObj.toString() : null;
     }
 
     public static long getTimestampFromDateString(String date) {
