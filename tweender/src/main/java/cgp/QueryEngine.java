@@ -6,14 +6,15 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.*;
 import org.apache.lucene.store.FSDirectory;
 
 import java.nio.file.Paths;
+import java.sql.Timestamp;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 
 public class QueryEngine {
     public static void match(String stringQuery) {
@@ -26,26 +27,35 @@ public class QueryEngine {
 
             var queryParser = new QueryParser(Fields.TEXT, analyzer);
             var textQuery = queryParser.parse(stringQuery);
-            var rangeQuery = LongPoint.newRangeQuery(Fields.RETWEET_COUNT, 10, Long.MAX_VALUE);
 
-            var booleanQuery = new BooleanQuery.Builder()
-                    .add(textQuery, BooleanClause.Occur.MUST)
-                    .add(rangeQuery, BooleanClause.Occur.MUST)
-                    .build();
-
-            var topDocs = indexSearcher.search(booleanQuery, 100);
+            var sort = new Sort(
+                    new SortedNumericSortField(Fields.DATE, SortField.Type.LONG, true)
+            );
+            var topDocs = indexSearcher.search(
+                    textQuery,
+                    100,
+                    sort,
+                    true,
+                    true
+            );
 
             var doc = new Document();
             var scoreDocs = topDocs.scoreDocs;
             var docs = new ArrayList<Document>(scoreDocs.length);
-            var maxLength = 0; var maxRetFav = 0l; var maxRetrieved = topDocs.getMaxScore();
+            var maxLength = 0;
+            var maxRetFav = 0l;
+            var maxRetrieved = topDocs.getMaxScore();
             for (var scoreDoc : scoreDocs) {
                 doc = indexReader.document(scoreDoc.doc);
                 var docLength = doc.getField(Fields.TEXT).stringValue().length();
                 var retfavCount = doc.getField(Fields.FAVORITE_COUNT).numericValue().longValue() +
                         doc.getField(Fields.RETWEET_COUNT).numericValue().longValue();
-                if (docLength > maxLength) { maxLength = docLength; }
-                if (retfavCount > maxRetFav) { maxRetFav = retfavCount; }
+                if (docLength > maxLength) {
+                    maxLength = docLength;
+                }
+                if (retfavCount > maxRetFav) {
+                    maxRetFav = retfavCount;
+                }
                 docs.add(doc);
             }
 
@@ -73,12 +83,13 @@ public class QueryEngine {
                 System.out.println(
                         "#" + (i + 1) + " " + doc.getField(Fields.USER).stringValue() + " (" +
                                 "R: " + doc.getField(Fields.RETWEET_COUNT).stringValue() +
-                                "; F: " + doc.getField(Fields.FAVORITE_COUNT).stringValue() +
-                                ")\n" + doc.getField(Fields.TEXT).stringValue() + "\n"
+                                "; F: " + doc.getField(Fields.FAVORITE_COUNT).stringValue() + ") " +
+                                new Date(doc.getField(Fields.DATE).numericValue().longValue()*1000) + "\n" +
+                                doc.getField(Fields.TEXT).stringValue() + "\n"
                 );
             }
         } catch (Exception e) {
-            System.err.println("Shouldn't be here");
+            e.printStackTrace();
         }
 
     }

@@ -37,8 +37,10 @@ public class Indexer {
 
         doc.add(new StringField(Fields.TWEET_ID, tweet.tweetId, Field.Store.YES));
         doc.add(new StringField(Fields.USER, tweet.user.name, Field.Store.YES));
+//        doc.add(new NumericDocValuesField(Fields.DATE, tweet.createdAt));
         doc.add(new LongPoint(Fields.DATE, tweet.createdAt));
         doc.add(new StoredField(Fields.DATE, tweet.createdAt));
+        doc.add(new SortedNumericDocValuesField(Fields.DATE, tweet.createdAt));
         doc.add(new TextField(Fields.TEXT, tweet.text, Field.Store.YES));
         doc.add(new StringField(Fields.IS_REPLY, tweet.replyToId != null ? "true" : "false", Field.Store.YES));
         doc.add(new StringField(Fields.IS_QUOTE, tweet.isQuote ? "true" : "false", Field.Store.YES));

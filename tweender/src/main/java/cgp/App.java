@@ -11,6 +11,10 @@ public class App
 
 //        doIndexing();
 
+        doQuery(in);
+    }
+
+    private static void doQuery(Scanner in) {
         while (true) {
             System.out.println("Escimi la query...");
             var query = in.nextLine();
