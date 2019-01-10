@@ -1,6 +1,7 @@
-package cgp;
+package cgp.progettoir.engine;
 
 import me.tongfei.progressbar.ProgressBar;
+
 import java.util.LinkedList;
 import java.util.Scanner;
 

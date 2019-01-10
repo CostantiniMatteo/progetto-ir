@@ -1,4 +1,4 @@
-package cgp;
+package cgp.progettoir.engine;
 
 import me.tongfei.progressbar.ProgressBar;
 import org.apache.lucene.analysis.en.EnglishAnalyzer;
@@ -37,7 +37,6 @@ public class Indexer {
 
         doc.add(new StringField(Fields.TWEET_ID, tweet.tweetId, Field.Store.YES));
         doc.add(new StringField(Fields.USER, tweet.user.name, Field.Store.YES));
-//        doc.add(new NumericDocValuesField(Fields.DATE, tweet.createdAt));
         doc.add(new LongPoint(Fields.DATE, tweet.createdAt));
         doc.add(new StoredField(Fields.DATE, tweet.createdAt));
         doc.add(new SortedNumericDocValuesField(Fields.DATE, tweet.createdAt));

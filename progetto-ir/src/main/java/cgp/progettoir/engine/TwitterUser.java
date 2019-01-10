@@ -1,6 +1,6 @@
-package cgp;
+package cgp.progettoir.engine;
 
-import org.json.*;
+import org.json.JSONObject;
 
 public class TwitterUser {
     public String userId;
