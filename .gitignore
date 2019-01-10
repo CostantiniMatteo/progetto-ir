@@ -40,3 +40,7 @@ secrets.yml
 .gradletasknamecache
 .sts4-cache
 queries/
+index/
+index_bak/
+.ipynb_checkpoints/
+*.ipynb
