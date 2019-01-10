@@ -12,7 +12,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 public class Indexer {
-    public static final String INDEX_PATH = "/Users/matteo/git/progetto-ir/index";
+    public static final String INDEX_PATH = "C:\\Users\\bahnh\\Documents\\git\\progetto-ir\\index";
     public class Fields {
         public static final String TWEET_ID = "tweetId";
         public static final String DATE = "date";
