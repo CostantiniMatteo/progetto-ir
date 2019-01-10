@@ -21,7 +21,7 @@ public class QueryEngine {
     public static final int URL_SCORE = 2;
 
     public static ArrayList<ResultEntity> match(String stringQuery) {
-        return match(stringQuery, 100);
+        return match(stringQuery, 10);
     }
 
     public static ArrayList<ResultEntity> match(String stringQuery, int n) {
@@ -45,7 +45,6 @@ public class QueryEngine {
             var scoreDocs = topDocs.scoreDocs;
             result = new ArrayList<>(scoreDocs.length);
             var docs = new ArrayList<Document>(scoreDocs.length);
-
 
             var doc = new Document();
             var maxLength = 0;
@@ -106,7 +105,7 @@ public class QueryEngine {
                 var date = new Date(doc.getField(Indexer.Fields.DATE).numericValue().longValue() * 1000);
                 var text = doc.getField(Indexer.Fields.TEXT).stringValue();
                 System.out.println("#" + (i + 1) + " " + author + " (" + "R: " + retweetCount +
-                        "; F: " + favoriteCount + ") " + date + "\n" + text + "\n");
+                        "; F: " + favoriteCount + ") " + date + "\n" + text + "\n" + doc.getField(Indexer.Fields.TWEET_ID).stringValue() + "\n\n");
             }
         } catch (Exception e) {
             e.printStackTrace();

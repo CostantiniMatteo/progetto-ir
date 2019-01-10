@@ -12,13 +12,14 @@ import java.nio.file.Paths;
 import java.util.List;
 
 public class Indexer {
-    public static final String INDEX_PATH = "C:\\Users\\bahnh\\Documents\\git\\progetto-ir\\index";
+    public static final String INDEX_PATH = "/Users/matteo/git/progetto-ir/index";
     public class Fields {
         public static final String TWEET_ID = "tweetId";
         public static final String DATE = "date";
         public static final String TEXT = "text";
         public static final String IS_REPLY = "isReply";
         public static final String IS_QUOTE = "isQuote";
+        public static final String IS_RETWEET = "isRetweet";
         public static final String HAS_URLS = "hasUrls";
         public static final String HAS_MEDIA = "hasMedia";
         public static final String RETWEET_COUNT = "retweetCount";
@@ -43,6 +44,7 @@ public class Indexer {
         doc.add(new TextField(Fields.TEXT, tweet.text, Field.Store.YES));
         doc.add(new StringField(Fields.IS_REPLY, tweet.replyToId != null ? "true" : "false", Field.Store.YES));
         doc.add(new StringField(Fields.IS_QUOTE, tweet.isQuote ? "true" : "false", Field.Store.YES));
+        doc.add(new StringField(Fields.IS_RETWEET, tweet.isRetweet ? "true" : "false", Field.Store.YES));
         doc.add(new StringField(Fields.HAS_URLS, tweet.urls.size() > 0 ? "true" : "false", Field.Store.YES));
         doc.add(new StringField(Fields.HAS_MEDIA, tweet.media.size() > 0 ? "true" : "false", Field.Store.YES));
         doc.add(new StringField(Fields.USER_VERIFIED, tweet.user.verified ? "true" : "false", Field.Store.YES));

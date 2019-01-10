@@ -21,6 +21,7 @@ public class Tweet {
     public String geo;
     public String coordinates;
     public boolean isQuote;
+    public boolean isRetweet;
     public long retweetCount;
     public long favoriteCount;
     public String lang;
@@ -48,6 +49,10 @@ public class Tweet {
         this.retweetCount = obj.getLong("retweet_count");
         this.favoriteCount = obj.getLong("favorite_count");
         this.lang = obj.getString("lang");
+        this.isRetweet = obj.has("retweeted_status");
+        if (this.isRetweet) {
+            this.text = obj.getJSONObject("retweeted_status").getString("full_text");
+        }
 
         var entities = obj.getJSONObject("entities");
         this.hashtags = stringListFromJsonArray(entities.getJSONArray("hashtags"), "text");

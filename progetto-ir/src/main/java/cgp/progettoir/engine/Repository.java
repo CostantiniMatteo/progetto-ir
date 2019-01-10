@@ -6,7 +6,7 @@ import java.util.ArrayList;
 
 public class Repository {
 //    static String HOST = "jdbc:postgresql://157.230.25.215:5432/progetto_ir";
-    static String HOST = "jobd:postgresql://localhost:5432/progetto_ir";
+    static String HOST = "jdbc:postgresql://localhost:5432/progetto_ir";
     static String USER = "matteo";
 //    static String PASSWORD = "correct horse battery staple";
     static String PASSWORD = "";

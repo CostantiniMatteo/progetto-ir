@@ -11,7 +11,6 @@ public class App
         var in = new Scanner(System.in);
 
 //        doIndexing();
-
         doQuery(in);
     }
 
