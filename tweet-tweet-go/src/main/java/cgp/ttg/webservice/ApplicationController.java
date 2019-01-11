@@ -1,7 +1,6 @@
-package cgp.progettoir.webservice;
+package cgp.ttg.webservice;
 
-import cgp.progettoir.engine.QueryEngine;
-import org.springframework.http.HttpStatus;
+import cgp.ttg.engine.QueryEngine;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

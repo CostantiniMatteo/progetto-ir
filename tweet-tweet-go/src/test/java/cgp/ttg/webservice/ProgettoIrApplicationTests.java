@@ -1,4 +1,4 @@
-package cgp.progettoir.webservice;
+package cgp.ttg.webservice;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

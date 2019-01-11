@@ -1,6 +1,8 @@
-package cgp.progettoir.engine;
+package cgp.ttg.engine;
 
 import me.tongfei.progressbar.ProgressBar;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexWriter;
@@ -69,16 +71,36 @@ public class Indexer {
         var path = Paths.get(indexPath);
         try {
             var directory = FSDirectory.open(path);
-            var analyzer = new EnglishAnalyzer();
+            var analyzer = getCustomAnalyzer();
             var cfg = new IndexWriterConfig(analyzer);
             var indexWriter = new IndexWriter(directory, cfg);
             for (var tweet : ProgressBar.wrap(tweets, "Indexing")) {
-                indexWriter.addDocument(tweetToDocument(tweet));
+                if ("en".equals(tweet.lang)) {
+                    indexWriter.addDocument(tweetToDocument(tweet));
+                }
             }
             indexWriter.close();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static Analyzer getCustomAnalyzer() throws IOException {
+        return CustomAnalyzer.builder()
+                .addCharFilter(
+                        "patternreplace",
+                        "pattern",
+                        "((https?|ftp|gopher|telnet|file|Unsure|http):((//)|(\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*)",
+                        "replacement",
+                        " "
+                )
+                .withTokenizer("standard")
+                .addTokenFilter("lowercase")
+                .addTokenFilter("stop")
+                .addTokenFilter("porterstem")
+                .build();
+
     }
 
     public static void createIndex(List<Tweet> tweets) {

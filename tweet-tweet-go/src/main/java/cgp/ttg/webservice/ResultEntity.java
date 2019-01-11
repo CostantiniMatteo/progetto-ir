@@ -1,6 +1,4 @@
-package cgp.progettoir.webservice;
-
-import cgp.progettoir.engine.Tweet;
+package cgp.ttg.webservice;
 
 import java.util.Date;
 
@@ -18,8 +16,9 @@ public class ResultEntity {
     public float urlScore;
     public float lengthScore;
     public float retweetScore;
+    public float qrScore;
 
-    public ResultEntity(long rank, String tweetId, String author, long retweetCount, long favoriteCount, Date date, String text, float score, float luceneScore, float frScore, float urlScore, float lengthScore, float retweetScore) {
+    public ResultEntity(long rank, String tweetId, String author, long retweetCount, long favoriteCount, Date date, String text, float score, float luceneScore, float frScore, float urlScore, float lengthScore, float retweetScore, float qrScore) {
         this.rank = rank;
         this.tweetId = tweetId;
         this.author = author;
@@ -33,5 +32,12 @@ public class ResultEntity {
         this.urlScore = urlScore;
         this.lengthScore = lengthScore;
         this.retweetScore = retweetScore;
+        this.qrScore = qrScore;
+    }
+
+    public String scoreRepr() {
+        return score + " = Lu" + luceneScore + " + FR" + frScore +
+                " + U" + urlScore + " + Le" + lengthScore + " + R" +
+                retweetScore + " + Q" + qrScore;
     }
 }

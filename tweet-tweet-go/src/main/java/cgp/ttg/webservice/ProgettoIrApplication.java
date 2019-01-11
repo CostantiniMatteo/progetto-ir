@@ -1,4 +1,4 @@
-package cgp.progettoir.webservice;
+package cgp.ttg.webservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
