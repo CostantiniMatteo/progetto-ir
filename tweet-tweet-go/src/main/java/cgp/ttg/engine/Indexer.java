@@ -5,6 +5,7 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.custom.CustomAnalyzer;
 import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.document.*;
+import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.FSDirectory;
@@ -15,6 +16,14 @@ import java.util.List;
 
 public class Indexer {
     public static final String INDEX_PATH = "/Users/matteo/git/progetto-ir/index";
+    public static final String USER_INDEX_PATH = "/Users/matteo/git/progetto-ir/user_index";
+    public static final FieldType tweetField = new FieldType() {{
+        setTokenized(true);
+        setStored(true);
+        setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS);
+        setStoreTermVectors(true);
+    }};
+
     public class Fields {
         public static final String TWEET_ID = "tweetId";
         public static final String DATE = "date";
@@ -43,7 +52,8 @@ public class Indexer {
         doc.add(new LongPoint(Fields.DATE, tweet.createdAt));
         doc.add(new StoredField(Fields.DATE, tweet.createdAt));
         doc.add(new SortedNumericDocValuesField(Fields.DATE, tweet.createdAt));
-        doc.add(new TextField(Fields.TEXT, tweet.text, Field.Store.YES));
+//        doc.add(new TextField(Fields.TEXT, tweet.text, Field.Store.YES));
+        doc.add(new Field(Fields.TEXT, tweet.text, tweetField));
         doc.add(new StringField(Fields.IS_REPLY, tweet.replyToId != null ? "true" : "false", Field.Store.YES));
         doc.add(new StringField(Fields.IS_QUOTE, tweet.isQuote ? "true" : "false", Field.Store.YES));
         doc.add(new StringField(Fields.IS_RETWEET, tweet.isRetweet ? "true" : "false", Field.Store.YES));
@@ -74,6 +84,11 @@ public class Indexer {
             var analyzer = getCustomAnalyzer();
             var cfg = new IndexWriterConfig(analyzer);
             var indexWriter = new IndexWriter(directory, cfg);
+
+            // Empty index before writing so that we don't add documents to an already existing index
+            indexWriter.deleteAll();
+            indexWriter.commit();
+
             for (var tweet : ProgressBar.wrap(tweets, "Indexing")) {
                 if ("en".equals(tweet.lang)) {
                     indexWriter.addDocument(tweetToDocument(tweet));
@@ -86,20 +101,24 @@ public class Indexer {
         }
     }
 
-    public static Analyzer getCustomAnalyzer() throws IOException {
-        return CustomAnalyzer.builder()
-                .addCharFilter(
-                        "patternreplace",
-                        "pattern",
-                        "((https?|ftp|gopher|telnet|file|Unsure|http):((//)|(\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*)",
-                        "replacement",
-                        " "
-                )
-                .withTokenizer("standard")
-                .addTokenFilter("lowercase")
-                .addTokenFilter("stop")
-                .addTokenFilter("porterstem")
-                .build();
+    public static Analyzer getCustomAnalyzer() {
+        try {
+            return CustomAnalyzer.builder()
+                    .addCharFilter(
+                            "patternreplace",
+                            "pattern",
+                            "((https?|ftp|gopher|telnet|file|Unsure|http):((//)|(\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*)",
+                            "replacement",
+                            " "
+                    )
+                    .withTokenizer("standard")
+                    .addTokenFilter("lowercase")
+                    .addTokenFilter("stop")
+                    .addTokenFilter("porterstem")
+                    .build();
+        } catch (IOException e) {
+            return null;
+        }
 
     }
 

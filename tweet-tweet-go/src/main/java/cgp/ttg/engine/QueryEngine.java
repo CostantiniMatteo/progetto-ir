@@ -61,6 +61,7 @@ public class QueryEngine {
             var maxScore = topDocs.getMaxScore();
             for (var scoreDoc : scoreDocs) {
                 doc = indexReader.document(scoreDoc.doc);
+                System.out.println("ciao");
                 var docLength = doc.getField(Indexer.Fields.TEXT).stringValue().length();
                 var retfavCount = doc.getField(Indexer.Fields.FAVORITE_COUNT).numericValue().longValue() +
                         doc.getField(Indexer.Fields.RETWEET_COUNT).numericValue().longValue();
