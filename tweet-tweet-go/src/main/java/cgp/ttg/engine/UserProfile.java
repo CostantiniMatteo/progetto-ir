@@ -38,7 +38,7 @@ public class UserProfile {
         try {
             for (String topic : tweets.keySet()) {
                 var topicTweets = tweets.get(topic);
-                Indexer.createIndex(topicTweets, Indexer.USER_INDEX_PATH);
+                Indexer.createIndex(topicTweets, Indexer.USER_INDEX_PATH, false);
                 List<TermTfidfPair> termTfidfList = new ArrayList<>();
 
                 var userIndexReader = DirectoryReader.open(FSDirectory.open(Paths.get(Indexer.USER_INDEX_PATH)));

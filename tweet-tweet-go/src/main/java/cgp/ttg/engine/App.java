@@ -13,12 +13,12 @@ public class App {
     public static void main(String[] args) throws Exception {
         var in = new Scanner(System.in);
 
-        var blah = new HashMap<String, List<Tweet>>();
-        var tweets = Arrays.stream(appleFanBoy).map((id) -> Repository.findTweetByTweetId(id)).collect(Collectors.toList());
-        blah.put("cs", tweets);
-        var u = new UserProfile("Me", blah);
-//        doIndexing();
-        doQuery(in, u);
+//        var blah = new HashMap<String, List<Tweet>>();
+//        var tweets = Arrays.stream(appleFanBoy).map((id) -> Repository.findTweetByTweetId(id)).collect(Collectors.toList());
+//        blah.put("cs", tweets);
+//        var u = new UserProfile("Me", blah);
+        doIndexing();
+//        doQuery(in, u);
     }
 
     private static void doQuery(Scanner in, UserProfile u) {

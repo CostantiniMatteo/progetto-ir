@@ -73,13 +73,18 @@ public class Indexer {
         doc.add(new StringField(Fields.LANG, tweet.lang, Field.Store.YES));
         for (var hashtag : tweet.hashtags) {
             doc.add(new StringField(Fields.HASHTAG, hashtag, Field.Store.YES));
-            doc.add(new TextField(Fields.HASHTAG, hashtag, Field.Store.YES));
+//            doc.add(new TextField(Fields.HASHTAG, hashtag, Field.Store.YES));
         }
 
         return doc;
     }
 
-    public static void createIndex(List<Tweet> tweets, String indexPath) {
+
+    public static void createIndex(List<Tweet> tweets) {
+        createIndex(tweets, INDEX_PATH, true);
+    }
+
+    public static void createIndex(List<Tweet> tweets, String indexPath, boolean append) {
         var path = Paths.get(indexPath);
         try {
             var directory = FSDirectory.open(path);
@@ -89,8 +94,10 @@ public class Indexer {
             var indexWriter = new IndexWriter(directory, cfg);
 
             // Empty index before writing so that we don't add documents to an already existing index
-            indexWriter.deleteAll();
-            indexWriter.commit();
+            if (!append) {
+                indexWriter.deleteAll();
+                indexWriter.commit();
+            }
 
             for (var tweet : ProgressBar.wrap(tweets, "Indexing")) {
                 if ("en".equals(tweet.lang)) {
@@ -125,8 +132,5 @@ public class Indexer {
 
     }
 
-    public static void createIndex(List<Tweet> tweets) {
-        createIndex(tweets, INDEX_PATH);
-    }
 
 }
