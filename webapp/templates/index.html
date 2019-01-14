@@ -21,7 +21,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="description" content="A front-end template that helps you build fast, modern mobile web apps.">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
-    <title>Material Design Lite</title>
+    <title>Tweet Tweet GO</title>
 
     <!-- Add to homescreen for Chrome on Android -->
     <meta name="mobile-web-app-capable" content="yes">
@@ -46,7 +46,67 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="{{ url_for('static', filename='js/jquery.animate-colors.js') }}"></script>
-    {% block javascript %}{% endblock %}
+    <script>
+
+      function sendQuery(){
+        $.ajax({
+           type: "GET",
+           url: "{{ url_for('home') }}",
+           data: $(".query-form").serialize(), // serializes the form's elements.
+           cache:'false',
+           beforeSend: function() {
+              // setting a timeout
+/*              $(".table-container").empty();
+              $('.spinner_mdl_div').removeAttr('hidden');*/
+           },
+           success: function(data) {
+/*              $('.spinner_mdl_div').attr('hidden', 'true');;
+              $(".table-container").replaceWith(data);*/
+            console.log(data);
+            getTweets(data);
+
+           }
+        });
+      }
+
+      function getHtml(id){
+        $.ajax({
+           type: "GET",
+           url: "{{ url_for('get_tweet_html') }}",
+           data: {"tweetId" : id}, // serializes the form's elements.
+           cache:'false',
+           beforeSend: function() {
+              // setting a timeout
+/*              $(".table-container").empty();
+              $('.spinner_mdl_div').removeAttr('hidden');*/
+           },
+           success: function(data) {
+/*              $('.spinner_mdl_div').attr('hidden', 'true');;
+              $(".table-container").replaceWith(data);*/
+            console.log(data);
+
+           }
+        });
+
+      }
+
+      function getTweets(data){
+        var ids = []
+        for (var i=0; i < data.length; i++){
+          ids.push(data[i]['tweetId']);
+        }
+
+        r = []
+        for (var i=0; i < ids.length; i++){
+          r.push(getHtml(ids[i]));
+        }
+
+        console.log(r);
+      }
+
+
+
+    </script>
 
     <link href="{{ url_for('static', filename='material/fonts/material-design-icons/material-icons.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='material/fonts/roboto/style.css') }}" rel="stylesheet">
@@ -114,7 +174,7 @@
                         <div class="col s12 m2">
                           <div class="row">
                             <div class="input-field col s12 required" id="centerName_container">
-                              <input type="submit" class="btn edit-att-btn" value="Sign up">
+                              <input type="button" class="btn edit-att-btn" value="Search" onclick="sendQuery()">
                             </div>
                           </div>
                         </div>
