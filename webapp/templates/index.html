@@ -25,19 +25,19 @@
 
     <!-- Add to homescreen for Chrome on Android -->
     <meta name="mobile-web-app-capable" content="yes">
-    <link rel="icon" sizes="192x192" href="images/android-desktop.png">
+    <link rel="icon" sizes="192x192" href="images/logo.png">
 
     <!-- Add to homescreen for Safari on iOS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="Material Design Lite">
-    <link rel="apple-touch-icon-precomposed" href="images/ios-desktop.png">
+    <link rel="apple-touch-icon-precomposed" href="images/logo.png">
 
     <!-- Tile icon for Win8 (144x144 + tile color) -->
-    <meta name="msapplication-TileImage" content="images/touch/ms-touch-icon-144x144-precomposed.png">
+    <meta name="msapplication-TileImage" content="images/images/logo.png">
     <meta name="msapplication-TileColor" content="#3372DF">
 
-    <link rel="shortcut icon" href="images/favicon.png">
+    <link rel="shortcut icon" href="images/images/logo.png">
 
     <!-- SEO: If your mobile URL is different from the desktop URL, add a canonical link to the desktop page https://developers.google.com/webmasters/smartphone-sites/feature-phones -->
     <!--
@@ -46,64 +46,63 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="{{ url_for('static', filename='js/jquery.animate-colors.js') }}"></script>
+    <script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
     <script>
 
+      $( document ).ready(function() {
+        $("#query").keydown(function(e) {
+            if(e.which == 13) {
+              sendQuery();
+              e.preventDefault();
+            }
+        });
+      });
+
       function sendQuery(){
+
         $.ajax({
            type: "GET",
            url: "{{ url_for('home') }}",
            data: $(".query-form").serialize(), // serializes the form's elements.
            cache:'false',
-           beforeSend: function() {
-              // setting a timeout
-/*              $(".table-container").empty();
-              $('.spinner_mdl_div').removeAttr('hidden');*/
-           },
            success: function(data) {
-/*              $('.spinner_mdl_div').attr('hidden', 'true');;
-              $(".table-container").replaceWith(data);*/
+            $(".demo-container").slice(1).remove();
             console.log(data);
             getTweets(data);
-
            }
         });
       }
 
-      function getHtml(id){
-        $.ajax({
-           type: "GET",
-           url: "{{ url_for('get_tweet_html') }}",
-           data: {"tweetId" : id}, // serializes the form's elements.
-           cache:'false',
-           beforeSend: function() {
-              // setting a timeout
-/*              $(".table-container").empty();
-              $('.spinner_mdl_div').removeAttr('hidden');*/
-           },
-           success: function(data) {
-/*              $('.spinner_mdl_div').attr('hidden', 'true');;
-              $(".table-container").replaceWith(data);*/
-            console.log(data);
-
-           }
-        });
-
-      }
-
-      function getTweets(data){
-        var ids = []
+      async function getTweets(data){
         for (var i=0; i < data.length; i++){
-          ids.push(data[i]['tweetId']);
+            await renderTweet(data[i]);
         }
 
-        r = []
-        for (var i=0; i < ids.length; i++){
-          r.push(getHtml(ids[i]));
-        }
-
-        console.log(r);
       }
 
+      function renderTweet(data) {
+        var node = "<div class=\"demo-container mdl-grid\"><div class=\"mdl-cell mdl-cell--2-col mdl-cell--hide-tablet mdl-cell--hide-phone\"></div><div class=\"card mdl-color--white mdl-shadow--4dp content mdl-color-text--grey-800 mdl-cell mdl-cell--8-col\"><div><div class=\"mdl-spinner mdl-js-spinner\"></div></div><div class=\"card-content\"><div class=\"mdl-grid\"><div class=\"mdl-layout-spacer\"></div><div class=\"mdl-cell mdl-cell--6-col tweet-container\"></div><div class=\"mdl-layout-spacer\"></div></div></div></div></div>";
+        var container = $(".demo-container").last().after(node);
+        var scores = '<div class=\"mdl-cell mdl-cell--6-col score-container\"><ul class=\"demo-list-item mdl-list\"><li class=\"mdl-list__item\"><span class=\"mdl-list__item-primary-content\">frScore:</span><span class=\"mdl-list__item-secondary-content\">' + data['frScore'] + '</span></li><li class=\"mdl-list__item\"><span class=\"mdl-list__item-primary-content\">lengthScore:</span><span class=\"mdl-list__item-secondary-content\">' + data['lengthScore'] + '</span></li><li class=\"mdl-list__item\"><span class=\"mdl-list__item-primary-content\">qrScore:</span><span class=\"mdl-list__item-secondary-content\">' + data['qrScore'] + '</span></li><li class=\"mdl-list__item\"><span class=\"mdl-list__item-primary-content\">retweetScore:</span><span class=\"mdl-list__item-secondary-content\">' + data['retweetScore'] + '</span></li><li class=\"mdl-list__item\"><span class=\"mdl-list__item-primary-content\">score:</span><span class=\"mdl-list__item-secondary-content\">' + data['score'] + '</span></li></ul></div>';
+
+        var container = $(".tweet-container").last();
+        $(container).after(scores);
+
+        twttr.widgets.createTweet(
+          data['tweetId'],
+          container[0]
+          )
+        .then(function (result) {
+            if (result === undefined) {
+              console.log("Errore");
+              $(container).parents().eq(3).remove();
+            }
+            else {
+             console.log("Fatto");
+            }
+          }
+        );
+      }
 
 
     </script>
@@ -153,7 +152,14 @@
                     <div class="col s12">
 
                       <div class="layout-row row">
-                        <div class="col s12 m10">
+                        <div class="col s12 m1">
+                          <div class="row">
+                            <div class="input-field col s12 required" id="img_container" style="margin-top: 0px;">
+                              <img height='72' src="{{ url_for('static', filename='images/logo.png') }}">
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col s12 m9">
                           <div class="row">
                             <div class="input-field col s12 required" id=query_container">
                               <input id="query" name="q" type="text" >
@@ -162,15 +168,6 @@
                           </div>
                         </div>
 
-<!--                         <div class="col s12 m6">
-                          <div class="row">
-                            <div class="input-field col s12 required" id="centerName_container">
-                              <input id="centerName" name="centerName" type="text" >
-                              <label class="active" for="centerName">Center Name</label>
-                            </div>
-                          </div>
-                        </div> -->
-
                         <div class="col s12 m2">
                           <div class="row">
                             <div class="input-field col s12 required" id="centerName_container">
@@ -178,7 +175,7 @@
                             </div>
                           </div>
                         </div>
-                      </div>
+                      </di v>
 
                     </div>
                 </div>
@@ -193,34 +190,6 @@
           </div>
 
           </div>
-        <div class="demo-container mdl-grid">
-          <div class="mdl-cell mdl-cell--2-col mdl-cell--hide-tablet mdl-cell--hide-phone"></div>
-          <div style="min-height: 53.5vh;" class="card mdl-color--white mdl-shadow--4dp content mdl-color-text--grey-800 mdl-cell mdl-cell--8-col">
-            <div>
-            <div class="mdl-spinner mdl-js-spinner"></div>
-            </div>
-            <div class="card-content">
-                <div class="mdl-grid">
-                  <div class="mdl-layout-spacer"></div>
-                  <div class="mdl-cell mdl-cell--6-col">
-                  {% for tweet in tweet_html %}
-                      {{ tweet|safe }}
-                  {% endfor %}
-                  </div>
-                  <div class="mdl-layout-spacer"></div>
-                </div>
-            </div>
-          </div>
-        </div>
-        <footer class="demo-footer mdl-mini-footer">
-          <div class="mdl-mini-footer--left-section">
-            <ul class="mdl-mini-footer--link-list">
-              <li><a href="#">Help</a></li>
-              <li><a href="#">Privacy and Terms</a></li>
-              <li><a href="#">User Agreement</a></li>
-            </ul>
-          </div>
-        </footer>
       </main>
     </div>
     <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
