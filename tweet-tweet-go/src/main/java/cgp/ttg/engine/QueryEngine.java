@@ -1,13 +1,10 @@
 package cgp.ttg.engine;
 
 import cgp.ttg.webservice.ResultEntity;
-import org.apache.catalina.User;
+import cgp.ttg.webservice.TweetResultEntity;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.QueryParser;
@@ -25,20 +22,20 @@ public class QueryEngine {
     public static final float IS_QUOTE_SCORE = 0.5f;
     public static final float IS_RETWEET_SCORE = 0.5f;
 
-    public static ArrayList<ResultEntity> match(String stringQuery) {
+    public static ResultEntity match(String stringQuery) {
         return match(stringQuery, 150);
     }
 
-    public static ArrayList<ResultEntity> match(String stringQuery, int n) {
+    public static ResultEntity match(String stringQuery, int n) {
         return match(stringQuery, n, null, null);
     }
 
-    public static ArrayList<ResultEntity> match(String stringQuery, UserProfile userProfile, String topic) {
+    public static ResultEntity match(String stringQuery, UserProfile userProfile, String topic) {
         return match(stringQuery, 150, userProfile, topic);
     }
 
-    public static ArrayList<ResultEntity> match(String stringQuery, int n, UserProfile userProfile, String topic) {
-        ArrayList<ResultEntity> results = null;
+    public static ResultEntity match(String stringQuery, int n, UserProfile userProfile, String topic) {
+        ArrayList<TweetResultEntity> match = null;
 
         try {
             var path = Paths.get(Indexer.INDEX_PATH);
@@ -73,7 +70,7 @@ public class QueryEngine {
             var topDocs = indexSearcher.search(finalQuery, n, sort, true, true);
             var scoreDocs = topDocs.scoreDocs;
 
-            var unfilteredResults = new ArrayList<ResultEntity>();
+            var unfilteredResults = new ArrayList<TweetResultEntity>();
             var docs = new ArrayList<Document>();
 
 
@@ -111,8 +108,8 @@ public class QueryEngine {
 
             System.err.println("FINDING NEAR-DUPLICATES");
 //          Near-duplicates detection
-            var nearDuplicates = new ArrayList<ResultEntity>();
-            results = new ArrayList<>();
+            var nearDuplicates = new ArrayList<TweetResultEntity>();
+            match = new ArrayList<>();
             var isDuplicate = new ArrayList<>(Collections.nCopies(unfilteredResults.size(), false));
             for (int i = 0; i < unfilteredResults.size() - 1; i++) {
                 if (isDuplicate.get(i)) {
@@ -139,21 +136,21 @@ public class QueryEngine {
                 if (isDuplicate.get(i)) {
                     nearDuplicates.add(unfilteredResults.get(i));
                 } else {
-                    results.add(unfilteredResults.get(i));
+                    match.add(unfilteredResults.get(i));
                 }
             }
 
             // Debug
             System.err.println("RESULTS");
-            printDocuments(results, indexReader, scoreDocs, maxRetFav);
+            printDocuments(match, indexReader, scoreDocs, maxRetFav);
+            return new ResultEntity(match, nearDuplicates);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
-        return results;
     }
 
-    private static void printDocuments(ArrayList<ResultEntity> result, DirectoryReader indexReader, ScoreDoc[] scoreDocs, long maxRetFav) throws IOException {
+    private static void printDocuments(ArrayList<TweetResultEntity> result, DirectoryReader indexReader, ScoreDoc[] scoreDocs, long maxRetFav) throws IOException {
         Document doc;
         for (var i = result.size() - 1; i >= 0; i--) {
             var scoreDoc = scoreDocs[i];
@@ -171,7 +168,7 @@ public class QueryEngine {
         System.out.println("\nMax Retweet+Fav = " + maxRetFav);
     }
 
-    private static ResultEntity processDoc(Document doc, int rank, float score, float maxScore, long maxLength, long maxRetFav) {
+    private static TweetResultEntity processDoc(Document doc, int rank, float score, float maxScore, long maxLength, long maxRetFav) {
         var tweetId = doc.getField(Indexer.Fields.TWEET_ID).stringValue();
         var author = doc.getField(Indexer.Fields.USER).stringValue();
         var userFollowers = doc.getField(Indexer.Fields.USER_FOLLOWERS).numericValue().longValue();
@@ -193,7 +190,7 @@ public class QueryEngine {
         var finalScore = baseScore + frul + retweetScore + qrScore;
 
 
-        return new ResultEntity(
+        return new TweetResultEntity(
                 rank, tweetId, author, retweetCount, favoriteCount, date, text, finalScore,
                 baseScore, frScore, urlScore, lengthScore, retweetScore, qrScore
         );

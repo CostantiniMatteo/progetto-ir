@@ -11,7 +11,7 @@ import java.util.List;
 public class ApplicationController {
 
     @RequestMapping(value = "/search", method = RequestMethod.GET)
-    public ResponseEntity<List<ResultEntity>> getJobs(@RequestParam("q") String query) {
+    public ResponseEntity<ResultEntity> getJobs(@RequestParam("q") String query) {
         var result = QueryEngine.match(query);
         return ResponseEntity.ok(result);
     }
