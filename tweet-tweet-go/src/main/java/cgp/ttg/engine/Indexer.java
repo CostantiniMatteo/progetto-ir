@@ -8,6 +8,8 @@ import org.apache.lucene.document.*;
 import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.search.similarities.ClassicSimilarity;
+import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.store.FSDirectory;
 
 import java.io.IOException;
@@ -83,6 +85,7 @@ public class Indexer {
             var directory = FSDirectory.open(path);
             var analyzer = getCustomAnalyzer();
             var cfg = new IndexWriterConfig(analyzer);
+            cfg.setSimilarity(new ClassicSimilarity());
             var indexWriter = new IndexWriter(directory, cfg);
 
             // Empty index before writing so that we don't add documents to an already existing index

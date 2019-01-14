@@ -94,5 +94,21 @@ public class Repository {
         return null;
     }
 
+    public static Tweet findTweetByTweetId(String tweetId) {
+        String query = "select * from tweets where tweet_id = " + tweetId + ";";
+        try {
+            var c = getConnection();
+            var stmt = c.createStatement();
+            var rs = stmt.executeQuery(query);
+
+            if (rs.next()) {
+                return new Tweet(rs.getString("json"),
+                        findUserByScreenName(rs.getString("user_id")));
+            }
+        } catch (Exception e) { }
+
+        return null;
+    }
+
 
 }
