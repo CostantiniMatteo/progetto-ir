@@ -17,8 +17,8 @@ public class App {
 //        var tweets = Arrays.stream(appleFanBoy).map((id) -> Repository.findTweetByTweetId(id)).collect(Collectors.toList());
 //        blah.put("cs", tweets);
 //        var u = new UserProfile("Me", blah);
-        doIndexing();
-//        doQuery(in, u);
+//        doIndexing();
+        doQuery(in, null);
     }
 
     private static void doQuery(Scanner in, UserProfile u) {
@@ -26,7 +26,7 @@ public class App {
             System.out.println("Escimi la query...");
             var query = in.nextLine();
             if (!"".equals(query)) {
-                QueryEngine.match(query, u, "cs");
+                QueryEngine.match(query);
                 System.out.println("\n\n");
             } else {
                 break;

@@ -2,6 +2,7 @@ package cgp.ttg.engine;
 
 import cgp.ttg.webservice.ResultEntity;
 import cgp.ttg.webservice.TweetResultEntity;
+import com.sun.jdi.FloatType;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.document.Document;
@@ -18,9 +19,12 @@ import java.util.*;
 
 public class QueryEngine {
 
-    public static final int URL_SCORE = 2;
-    public static final float IS_QUOTE_SCORE = 0.5f;
-    public static final float IS_RETWEET_SCORE = 0.5f;
+    public static final float URL_SCORE = 1.0f/3;
+    public static final float IS_QUOTE_SCORE = -0.5f;
+    public static final float IS_RETWEET_SCORE = -0.5f;
+    public static final float LUCENE_MULT = 2.0f;
+    public static final float FOLLOWER_MULT = 2.0f;
+    public static final float RETWEET_MULT = 2.0f;
 
     public static ResultEntity match(String stringQuery) {
         return match(stringQuery, 150);
@@ -48,20 +52,26 @@ public class QueryEngine {
             var queryParser = new QueryParser(Indexer.Fields.TEXT, analyzer);
             queryParser.setDefaultOperator(QueryParser.Operator.AND);
             var textQuery = queryParser.parse(stringQuery);
-            Query finalQuery = textQuery;
+            var queryBuilder = new BooleanQuery.Builder()
+                    .add(textQuery, BooleanClause.Occur.MUST);
+
+            for (var term : stringQuery.split(" ")) {
+                queryBuilder.add(
+                        new TermQuery(new Term(Indexer.Fields.HASHTAG, term)),
+                        BooleanClause.Occur.SHOULD
+                );
+            }
 
             // Personalize query
             if (userProfile != null && topic != null) {
-                var queryBuilder = new BooleanQuery.Builder()
-                        .add(textQuery, BooleanClause.Occur.MUST);
-
                 for (var term : userProfile.topicProfile(topic)) {
                     queryBuilder.add(new BoostQuery(
                             new TermQuery(new Term(Indexer.Fields.TEXT, term)), 1.0f / 3
                     ), BooleanClause.Occur.SHOULD);
                 }
-                finalQuery = queryBuilder.build();
             }
+
+            Query finalQuery = queryBuilder.build();
 
             // Search documents
             var sort = new Sort(
@@ -118,6 +128,9 @@ public class QueryEngine {
                 var res1 = unfilteredResults.get(i);
                 var ndd1 = new NDD(res1.text, generateShingles(res1.text, analyzer), 10);
                 for (int j = i + 1; j < unfilteredResults.size(); j++) {
+                    if (isDuplicate.get(j)) {
+                        continue;
+                    }
                     var res2 = unfilteredResults.get(j);
                     var ndd2 = new NDD(res2.text, generateShingles(res2.text, analyzer), 10);
                     if (ndd1.computeSimilarity(ndd2) > 0.75) {
@@ -142,7 +155,7 @@ public class QueryEngine {
 
             // Debug
             System.err.println("RESULTS");
-            printDocuments(match, indexReader, scoreDocs, maxRetFav);
+            printDocuments(match, maxRetFav);
             return new ResultEntity(match, nearDuplicates);
         } catch (Exception e) {
             e.printStackTrace();
@@ -150,20 +163,13 @@ public class QueryEngine {
         }
     }
 
-    private static void printDocuments(ArrayList<TweetResultEntity> result, DirectoryReader indexReader, ScoreDoc[] scoreDocs, long maxRetFav) throws IOException {
+    private static void printDocuments(ArrayList<TweetResultEntity> result, long maxRetFav) throws IOException {
         Document doc;
         for (var i = result.size() - 1; i >= 0; i--) {
-            var scoreDoc = scoreDocs[i];
-            doc = indexReader.document(scoreDoc.doc);
-            var author = doc.getField(Indexer.Fields.USER).stringValue();
-            var retweetCount = doc.getField(Indexer.Fields.RETWEET_COUNT).numericValue().longValue();
-            var favoriteCount = doc.getField(Indexer.Fields.FAVORITE_COUNT).numericValue().longValue();
-            var date = new Date(doc.getField(Indexer.Fields.DATE).numericValue().longValue() * 1000);
-            var text = doc.getField(Indexer.Fields.TEXT).stringValue();
-            System.out.println("#" + (i + 1) + " " + author + " (" + "R: " + retweetCount +
-                    "; F: " + favoriteCount + ") " + date + "\n" +
-                    text + "\n" + result.get(i).scoreRepr() + "\n" +
-                    doc.getField(Indexer.Fields.TWEET_ID).stringValue() + "\n");
+            var tweet = result.get(i);
+            System.out.println("#" + (i + 1) + " " + tweet.author + " (" + "R: " + tweet.retweetCount +
+                    "; F: " + tweet.favoriteCount + ") " + tweet.date + "\n" +
+                    tweet.text + "\n" + tweet.scoreRepr() + "\n" + tweet.tweetId + "\n");
         }
         System.out.println("\nMax Retweet+Fav = " + maxRetFav);
     }
@@ -181,10 +187,10 @@ public class QueryEngine {
         var favoriteCount = doc.getField(Indexer.Fields.FAVORITE_COUNT).numericValue().longValue();
         var retfavCount = favoriteCount + retweetCount;
 
-        var baseScore = 2 * score / maxScore;
-        var frScore = (1.0f * userFollowers / (userFollowers + userFollowing));
+        var baseScore = LUCENE_MULT * score / maxScore;
+        var frScore = FOLLOWER_MULT * (1.0f * userFollowers / (userFollowers + userFollowing));
         var frul = frScore + urlScore + lengthScore;
-        var retweetScore = 2.0f * retfavCount / maxRetFav;
+        var retweetScore = RETWEET_MULT * retfavCount / maxRetFav;
         var qrScore = ("true".equals(doc.getField(Indexer.Fields.IS_QUOTE).stringValue()) ? IS_QUOTE_SCORE : 0)
                 + ("true".equals(doc.getField(Indexer.Fields.IS_RETWEET).stringValue()) ? IS_RETWEET_SCORE : 0);
         var finalScore = baseScore + frul + retweetScore + qrScore;
