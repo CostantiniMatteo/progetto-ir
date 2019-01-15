@@ -113,7 +113,7 @@ public class Indexer {
 
     public static Analyzer getCustomAnalyzer() {
         try {
-            return CustomAnalyzer.builder()
+            var analyzer = CustomAnalyzer.builder()
                     .addCharFilter(
                             "patternreplace",
                             "pattern",
@@ -126,6 +126,7 @@ public class Indexer {
                     .addTokenFilter("stop")
                     .addTokenFilter("porterstem")
                     .build();
+            return analyzer;
         } catch (IOException e) {
             return null;
         }

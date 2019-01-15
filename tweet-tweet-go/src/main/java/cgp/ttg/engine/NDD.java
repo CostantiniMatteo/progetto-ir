@@ -40,5 +40,24 @@ public class NDD {
         return common / sigSize;
     }
 
+    public static double overlapCoefficient(Set<String> set1, Set<String> set2) {
+        Set<String> a;
+        Set<String> b;
+        if (set1.size() <= set2.size()) {
+            a = set1;
+            b = set2;
+        } else {
+            a = set2;
+            b = set1;
+        }
+        int count = 0;
+        for (String s : a) {
+            if (b.contains(s)) {
+                count++;
+            }
+        }
+        return 1.0 * count / (set1.size() > set2.size() ? set1.size() : set2.size()) ;
+    }
+
 }
 

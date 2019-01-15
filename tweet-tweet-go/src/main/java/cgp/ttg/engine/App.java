@@ -19,7 +19,7 @@ public class App {
             System.out.println("Escimi la query...");
             var query = in.nextLine();
             if (!"".equals(query)) {
-//                QueryEngine.match(query);
+                QueryEngine.match(query, 150, false, true, true, null, null, null, null);
                 System.out.println("\n\n");
             } else {
                 break;

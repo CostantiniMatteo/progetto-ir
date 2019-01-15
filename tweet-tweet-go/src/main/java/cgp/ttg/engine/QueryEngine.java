@@ -111,18 +111,21 @@ public class QueryEngine {
             match = new ArrayList<>();
             var isDuplicate = new ArrayList<>(Collections.nCopies(unfilteredResults.size(), false));
             for (int i = 0; i < unfilteredResults.size() - 1; i++) {
-                if (isDuplicate.get(i)) {
-                    continue;
-                }
+                if (isDuplicate.get(i)) continue;
+
                 var res1 = unfilteredResults.get(i);
-                var ndd1 = new NDD(res1.text, generateShingles(res1.text, analyzer), 10);
+//                var ndd1 = new NDD(res1.text, generateShingles(res1.text, analyzer), 10);
+                var tokenSet1 = new TreeSet<>(generateShingles(res1.text, analyzer));
+
                 for (int j = i + 1; j < unfilteredResults.size(); j++) {
-                    if (isDuplicate.get(j)) {
-                        continue;
-                    }
+                    if (isDuplicate.get(j)) continue;
+
                     var res2 = unfilteredResults.get(j);
-                    var ndd2 = new NDD(res2.text, generateShingles(res2.text, analyzer), 10);
-                    if (ndd1.computeSimilarity(ndd2) > 0.75) {
+//                    var ndd2 = new NDD(res2.text, generateShingles(res2.text, analyzer), 10);
+                    var tokenSet2 = new TreeSet<>(generateShingles(res2.text, analyzer));
+
+//                    if (ndd1.computeSimilarity(ndd2) > 0.75) {
+                    if (NDD.overlapCoefficient(tokenSet1, tokenSet2) > 0.8) {
                         if (res1.rank >= res2.rank) {
                             isDuplicate.set(j, true);
                         } else {
