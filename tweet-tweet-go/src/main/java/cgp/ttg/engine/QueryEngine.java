@@ -22,23 +22,12 @@ public class QueryEngine {
     public static final float URL_SCORE = 1.0f/3;
     public static final float IS_QUOTE_SCORE = -0.5f;
     public static final float IS_RETWEET_SCORE = -0.5f;
-    public static final float LUCENE_MULT = 2.0f;
+    public static final float LUCENE_MULT = 3.0f;
     public static final float FOLLOWER_MULT = 2.0f;
     public static final float RETWEET_MULT = 2.0f;
 
-    public static ResultEntity match(String stringQuery) {
-        return match(stringQuery, 150);
-    }
 
-    public static ResultEntity match(String stringQuery, int n) {
-        return match(stringQuery, n, null, null);
-    }
-
-    public static ResultEntity match(String stringQuery, UserProfile userProfile, String topic) {
-        return match(stringQuery, 150, userProfile, topic);
-    }
-
-    public static ResultEntity match(String stringQuery, int n, UserProfile userProfile, String topic) {
+    public static ResultEntity match(String stringQuery, int n, boolean full, boolean weightUrl, boolean weightMedia, Date since, Date to, String topic, UserProfile userProfile) {
         ArrayList<TweetResultEntity> match = null;
 
         try {

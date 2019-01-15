@@ -1,15 +1,10 @@
 package cgp.ttg.engine;
 
-import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.similarities.ClassicSimilarity;
-import org.apache.lucene.search.similarities.Similarity;
-import org.apache.lucene.search.similarities.TFIDFSimilarity;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
-import org.apache.lucene.util.BytesRefIterator;
 import org.apache.lucene.search.spell.LuceneDictionary;
 
 import java.nio.file.Paths;
@@ -17,6 +12,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class UserProfile {
+    public static String[] users = new String[] { "user1", "user2", "user3", "user4", "user5" };
+    public static String[] topics = new String[] { "sport", "music", "tech", "cs", "politics", "cinema", "food", "science", "cars", "finance" };
     private HashMap<String, Set<String>> profile;
     private String id;
 
@@ -69,5 +66,24 @@ public class UserProfile {
 
     public Set<String> topicProfile(String topic) {
         return this.profile.getOrDefault(topic, new HashSet<>());
+    }
+
+
+    public static String[] csTweetIds = new String[] {"1048729861164912641", "1033107225856958464", "1036691894410063873", "1048122413374947328", "1045000780833378304", "1020066565948133376", "1057120980513050624", "1054771723936116737", "1019994908617211904"};
+    public static String[] appleFanBoy = new String[] {"1075889856201388032", "1077173725076713472", "1059795695245451265", "1063091601369677824", "1029083728126074880", "1044338922606776325", "1076196049558126592", "1026501043142553600", "979804798609510401", "742705381336621056", "473732377123229696"};
+
+    public static UserProfile getProfile(String user) {
+        var tweetsMap = new HashMap<String, List<Tweet>>();
+        List tweets = new ArrayList();
+        switch (user) {
+            case "user1":
+                tweets = Arrays.stream(csTweetIds).map(Repository::findTweetByTweetId).collect(Collectors.toList());
+                break;
+            case "user2":
+                tweets = Arrays.stream(appleFanBoy).map(Repository::findTweetByTweetId).collect(Collectors.toList());
+                break;
+        }
+        tweetsMap.put("cs", tweets);
+        return new UserProfile("Me", tweetsMap);
     }
 }
