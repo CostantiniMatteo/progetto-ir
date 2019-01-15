@@ -1,5 +1,6 @@
 package cgp.ttg.engine;
 
+import org.apache.catalina.User;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.similarities.ClassicSimilarity;
@@ -7,13 +8,17 @@ import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.search.spell.LuceneDictionary;
 
+import java.io.*;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class UserProfile {
-    public static String[] users = new String[] { "user1", "user2", "user3", "user4", "user5" };
+    public static final String USER_PROFILES_PATH = "tweet-tweet-go/src/main/resources/";
+    public static String[] users = new String[] { "user1", "user2" };
     public static String[] topics = new String[] { "sport", "music", "tech", "cs", "politics", "cinema", "food", "science", "cars", "finance" };
+    public static HashMap<String, HashMap<String, List<String>>> userDocumentsByTopic = initUserDocumentsByTopic();
+
     private HashMap<String, Set<String>> profile;
     private String id;
 
@@ -85,5 +90,55 @@ public class UserProfile {
         }
         tweetsMap.put("cs", tweets);
         return new UserProfile("Me", tweetsMap);
+    }
+
+    public static HashMap<String, HashMap<String, List<String>>> initUserDocumentsByTopic() {
+        var result = new HashMap<String, HashMap<String, List<String>>>();
+
+        for (String user : UserProfile.users) {
+            var userMap = new HashMap<String, List<String>>();
+
+            File file = null;
+            try {
+                file = new File(USER_PROFILES_PATH + user);
+            } catch (Exception e) { e.printStackTrace(); }
+            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    var topic = line;
+                    var tweets = new ArrayList<String>();
+                    for (var tweet : br.readLine().split(" ")) {
+                        tweets.add(tweet);
+                    }
+                    userMap.put(topic, tweets);
+                }
+            } catch (Exception e) {
+                // Properly handled /s
+                e.printStackTrace();
+            }
+            result.put(user, userMap);
+        }
+
+        return result;
+    }
+
+    private static String resolveName(String name) {
+        if (name == null) {
+            return name;
+        }
+        if (!name.startsWith("/")) {
+            Class c = UserProfile.class;
+            while (c.isArray()) {
+                c = c.getComponentType();
+            }
+            String baseName = c.getName();
+            int index = baseName.lastIndexOf('.');
+            if (index != -1) {
+                name = baseName.substring(0, index).replace('.', '/') + "/" + name;
+            }
+        } else {
+            name = name.substring(1);
+        }
+        return name;
     }
 }

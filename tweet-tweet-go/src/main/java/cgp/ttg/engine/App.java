@@ -10,7 +10,6 @@ public class App {
 
     public static void main(String[] args) throws Exception {
         var in = new Scanner(System.in);
-
 //        doIndexing();
         doQuery(in, null);
     }
@@ -29,8 +28,7 @@ public class App {
     }
 
     private static void doIndexing() throws Exception {
-        var topics = new String[]{"sport", "music", "tech", "cs", "politics", "cinema", "food", "science", "cars", "finance"};
-        for (var topic : topics) {
+        for (var topic : UserProfile.topics) {
             var users = Repository.selectTopNUsersByTopic(100, topic);
             var tweets = new LinkedList<Tweet>();
             for (var user : ProgressBar.wrap(users, "Users")) {
