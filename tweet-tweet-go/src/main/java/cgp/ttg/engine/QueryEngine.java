@@ -2,7 +2,6 @@ package cgp.ttg.engine;
 
 import cgp.ttg.webservice.ResultEntity;
 import cgp.ttg.webservice.TweetResultEntity;
-import com.sun.jdi.FloatType;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.document.Document;
@@ -27,7 +26,7 @@ public class QueryEngine {
     public static final float RETWEET_MULT = 2.0f;
 
 
-    public static ResultEntity match(String stringQuery, int n, boolean full, boolean weightUrl, boolean weightMedia, Date since, Date to, String topic, UserProfile userProfile) {
+    public static ResultEntity match(String stringQuery, int n, boolean full, boolean weightUrl, Date since, Date to, String topic, UserProfile userProfile) {
         ArrayList<TweetResultEntity> match = null;
 
         try {
@@ -63,10 +62,15 @@ public class QueryEngine {
             Query finalQuery = queryBuilder.build();
 
             // Search documents
+            TopDocs topDocs;
             var sort = new Sort(
                     new SortedNumericSortField(Indexer.Fields.DATE, SortField.Type.LONG, true)
             );
-            var topDocs = indexSearcher.search(finalQuery, n, sort, true, true);
+            if (!full) {
+                topDocs = indexSearcher.search(finalQuery, n, sort, true, true);
+            } else {
+                topDocs = indexSearcher.search(finalQuery, n);
+            }
             var scoreDocs = topDocs.scoreDocs;
 
             var unfilteredResults = new ArrayList<TweetResultEntity>();
@@ -97,7 +101,7 @@ public class QueryEngine {
             // Re-score & Re-rank
             for (var i = 0; i < scoreDocs.length; i++) {
                 doc = docs.get(i);
-                var resultEntity = processDoc(doc, i, scoreDocs[i].score, maxScore, maxLength, maxRetFav);
+                var resultEntity = processDoc(doc, i, scoreDocs[i].score, maxScore, maxLength, maxRetFav, weightUrl);
                 scoreDocs[i].score = resultEntity.score;
                 unfilteredResults.add(resultEntity);
             }
@@ -155,25 +159,14 @@ public class QueryEngine {
         }
     }
 
-    private static void printDocuments(ArrayList<TweetResultEntity> result, long maxRetFav) throws IOException {
-        Document doc;
-        for (var i = result.size() - 1; i >= 0; i--) {
-            var tweet = result.get(i);
-            System.out.println("#" + (i + 1) + " " + tweet.author + " (" + "R: " + tweet.retweetCount +
-                    "; F: " + tweet.favoriteCount + ") " + tweet.date + "\n" +
-                    tweet.text + "\n" + tweet.scoreRepr() + "\n" + tweet.tweetId + "\n");
-        }
-        System.out.println("\nMax Retweet+Fav = " + maxRetFav);
-    }
-
-    private static TweetResultEntity processDoc(Document doc, int rank, float score, float maxScore, long maxLength, long maxRetFav) {
+    private static TweetResultEntity processDoc(Document doc, int rank, float score, float maxScore, long maxLength, long maxRetFav, boolean weightUrl) {
         var tweetId = doc.getField(Indexer.Fields.TWEET_ID).stringValue();
         var author = doc.getField(Indexer.Fields.USER).stringValue();
         var userFollowers = doc.getField(Indexer.Fields.USER_FOLLOWERS).numericValue().longValue();
         var userFollowing = doc.getField(Indexer.Fields.USER_FOLLOWING).numericValue().longValue();
         var date = new Date(doc.getField(Indexer.Fields.DATE).numericValue().longValue() * 1000);
         var text = doc.getField(Indexer.Fields.TEXT).stringValue();
-        var urlScore = "true".equals(doc.getField(Indexer.Fields.HAS_URLS).stringValue()) ? URL_SCORE : 0;
+        var urlScore = weightUrl && "true".equals(doc.getField(Indexer.Fields.HAS_URLS).stringValue()) ? URL_SCORE : 0;
         var lengthScore = 1.0f * doc.getField(Indexer.Fields.TEXT).stringValue().length() / maxLength;
         var retweetCount = doc.getField(Indexer.Fields.RETWEET_COUNT).numericValue().longValue();
         var favoriteCount = doc.getField(Indexer.Fields.FAVORITE_COUNT).numericValue().longValue();
@@ -215,5 +208,16 @@ public class QueryEngine {
             e.printStackTrace();
         }
         return null;
+    }
+
+    private static void printDocuments(ArrayList<TweetResultEntity> result, long maxRetFav) throws IOException {
+        Document doc;
+        for (var i = result.size() - 1; i >= 0; i--) {
+            var tweet = result.get(i);
+            System.out.println("#" + (i + 1) + " " + tweet.author + " (" + "R: " + tweet.retweetCount +
+                    "; F: " + tweet.favoriteCount + ") " + tweet.date + "\n" +
+                    tweet.text + "\n" + tweet.scoreRepr() + "\n" + tweet.tweetId + "\n");
+        }
+        System.out.println("\nMax Retweet+Fav = " + maxRetFav);
     }
 }

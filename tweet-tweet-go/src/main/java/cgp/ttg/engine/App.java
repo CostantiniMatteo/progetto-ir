@@ -1,9 +1,7 @@
 package cgp.ttg.engine;
 
 import me.tongfei.progressbar.ProgressBar;
-
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class App {
 
@@ -11,27 +9,36 @@ public class App {
     public static void main(String[] args) throws Exception {
         var in = new Scanner(System.in);
 //        doIndexing();
-        doQuery(in, UserProfile.getProfile("user1"));
+        doQuery(in);
     }
 
-    private static void doQuery(Scanner in, UserProfile u) {
-        var topic = "";
+    private static void doQuery(Scanner in) {
+        var topic = "none";
+        var user = UserProfile.getProfile("custom");
         while (true) {
-            System.out.println("Escimi la query...");
-            var query = in.nextLine();
+            try {
+                System.out.println("Escimi la query...");
+                var query = in.nextLine();
 
-            if ("".equals(query)) {
-                break;
-            } else if (query.startsWith("topic")) {
-                topic = query.split(" ")[1];
-            } else {
-                if ("none".equals(topic)) {
-                    QueryEngine.match(query, 150, false, true, true, null, null, null, null);
+                if ("".equals(query)) {
+                    System.exit(0);
+                } else if (query.startsWith("topic")) {
+                    topic = query.split(" ")[1];
+                    System.out.println("Topic selezionato: " + topic);
+                } else if (query.startsWith("user")) {
+                    user = UserProfile.getProfile(query.split(" ")[1]);
+                    topic = "none";
+                    System.out.println("User selezionato: " + user.getId());
                 } else {
-                    QueryEngine.match(query, 150, false, true, true, null, null, topic, u);
+                    if ("none".equals(topic)) {
+                        QueryEngine.match(query, 150, false, true, null, null, null, null);
+                    } else {
+                        QueryEngine.match(query, 150, false, true, null, null, topic, user);
+                    }
+                    System.out.println("User: " + user.getId() + "; Topic: " + topic);
+                    System.out.println("\n\n");
                 }
-                System.out.println("\n\n");
-            }
+            } catch (Exception e) { }
         }
     }
 

@@ -1,6 +1,5 @@
 package cgp.ttg.engine;
 
-import org.apache.catalina.User;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.similarities.ClassicSimilarity;
@@ -14,17 +13,22 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class UserProfile {
-    public static final String USER_PROFILES_PATH = "tweet-tweet-go/src/main/resources/";
-    public static String[] users = new String[] { "user1", "user2" };
+    private static final String USER_PROFILES_PATH = "tweet-tweet-go/src/main/resources/";
+    public static String[] userIds = new String[] { "user1", "user2" };
     public static String[] topics = new String[] { "sport", "music", "tech", "cs", "politics", "cinema", "food", "science", "cars", "finance" };
-    public static HashMap<String, HashMap<String, List<String>>> userDocumentsByTopic = initUserDocumentsByTopic();
+    private static HashMap<String, HashMap<String, List<String>>> userDocumentsByTopic = initUserDocumentsByTopic();
+    private static HashMap<String, UserProfile> users = new HashMap<>() {{
+        put("custom", new UserProfile("custom", new HashMap<>()));
+    }};
 
-    private HashMap<String, Set<String>> profile;
+
     private String id;
+    private HashMap<String, List<Tweet>> documents;
+    private HashMap<String, Set<String>> profile;
 
     class TermTfidfPair {
-        public String term;
-        public float tfidf;
+        String term;
+        float tfidf;
 
         TermTfidfPair(String term, float tdidf) {
             this.term = term;
@@ -32,14 +36,42 @@ public class UserProfile {
         }
     }
 
-    public UserProfile(String id, HashMap<String, List<Tweet>> tweets) {
+    public static UserProfile getProfile(String userId) {
+        var user = users.getOrDefault(userId, null);
+        if (user == null) {
+            user = initUser(userId);
+            users.put(userId, user);
+        }
+        return user;
+    }
+
+    public UserProfile(String id, HashMap<String, List<Tweet>> documents) {
         this.id = id;
+        this.profile = new HashMap<>();
+        this.documents = documents;
+        initProfile();
+    }
+
+    public void updateProfile(String topic, Tweet document) {
+        this.documents.get(topic).add(document);
+        initProfile();
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public Set<String> topicProfile(String topic) {
+        return this.profile.getOrDefault(topic, new HashSet<>());
+    }
+
+    private void initProfile() {
         this.profile = new HashMap<>();
 
         var similarity = new ClassicSimilarity();
         try {
-            for (String topic : tweets.keySet()) {
-                var topicTweets = tweets.get(topic);
+            for (String topic : this.documents.keySet()) {
+                var topicTweets = this.documents.get(topic);
                 Indexer.createIndex(topicTweets, Indexer.USER_INDEX_PATH, false);
                 List<TermTfidfPair> termTfidfList = new ArrayList<>();
 
@@ -65,37 +97,21 @@ public class UserProfile {
         } catch (Exception e) { }
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public Set<String> topicProfile(String topic) {
-        return this.profile.getOrDefault(topic, new HashSet<>());
-    }
-
-
-    public static String[] csTweetIds = new String[] {"1048729861164912641", "1033107225856958464", "1036691894410063873", "1048122413374947328", "1045000780833378304", "1020066565948133376", "1057120980513050624", "1054771723936116737", "1019994908617211904"};
-    public static String[] appleFanBoy = new String[] {"1075889856201388032", "1077173725076713472", "1059795695245451265", "1063091601369677824", "1029083728126074880", "1044338922606776325", "1076196049558126592", "1026501043142553600", "979804798609510401", "742705381336621056", "473732377123229696"};
-
-    public static UserProfile getProfile(String user) {
+    private static UserProfile initUser(String userId) {
+        var tweetIdsByTopic = userDocumentsByTopic.get(userId);
         var tweetsMap = new HashMap<String, List<Tweet>>();
-        List tweets = new ArrayList();
-        switch (user) {
-            case "user1":
-                tweets = Arrays.stream(csTweetIds).map(Repository::findTweetByTweetId).collect(Collectors.toList());
-                break;
-            case "user2":
-                tweets = Arrays.stream(appleFanBoy).map(Repository::findTweetByTweetId).collect(Collectors.toList());
-                break;
+        List tweets;
+        for (var topic : tweetIdsByTopic.keySet()) {
+            tweets = tweetIdsByTopic.get(topic).stream().map(Repository::findTweetByTweetId).collect(Collectors.toList());
+            tweetsMap.put(topic, tweets);
         }
-        tweetsMap.put("cs", tweets);
-        return new UserProfile("Me", tweetsMap);
+        return new UserProfile(userId, tweetsMap);
     }
 
-    public static HashMap<String, HashMap<String, List<String>>> initUserDocumentsByTopic() {
+    private static HashMap<String, HashMap<String, List<String>>> initUserDocumentsByTopic() {
         var result = new HashMap<String, HashMap<String, List<String>>>();
 
-        for (String user : UserProfile.users) {
+        for (String user : UserProfile.userIds) {
             var userMap = new HashMap<String, List<String>>();
 
             File file = null;
@@ -120,25 +136,5 @@ public class UserProfile {
         }
 
         return result;
-    }
-
-    private static String resolveName(String name) {
-        if (name == null) {
-            return name;
-        }
-        if (!name.startsWith("/")) {
-            Class c = UserProfile.class;
-            while (c.isArray()) {
-                c = c.getComponentType();
-            }
-            String baseName = c.getName();
-            int index = baseName.lastIndexOf('.');
-            if (index != -1) {
-                name = baseName.substring(0, index).replace('.', '/') + "/" + name;
-            }
-        } else {
-            name = name.substring(1);
-        }
-        return name;
     }
 }
