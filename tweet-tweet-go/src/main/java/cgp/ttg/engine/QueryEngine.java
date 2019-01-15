@@ -5,6 +5,7 @@ import cgp.ttg.webservice.TweetResultEntity;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.QueryParser;
@@ -27,7 +28,7 @@ public class QueryEngine {
 
 
     public static ResultEntity match(String stringQuery, int n, boolean full, boolean weightUrl, Date since, Date to, String topic, UserProfile userProfile) {
-        ArrayList<TweetResultEntity> match = null;
+        ArrayList<TweetResultEntity> match;
 
         try {
             var path = Paths.get(Indexer.INDEX_PATH);
@@ -47,6 +48,23 @@ public class QueryEngine {
                 queryBuilder.add(
                         new TermQuery(new Term(Indexer.Fields.HASHTAG, term)),
                         BooleanClause.Occur.SHOULD
+                );
+            }
+
+            if (since != null && to != null) {
+                queryBuilder.add(
+                        LongPoint.newRangeQuery(Indexer.Fields.DATE, since.getTime() / 1000, to.getTime() / 1000),
+                        BooleanClause.Occur.MUST
+                );
+            } else if (since != null) {
+                queryBuilder.add(
+                        LongPoint.newRangeQuery(Indexer.Fields.DATE, since.getTime() / 1000, Long.MAX_VALUE),
+                        BooleanClause.Occur.MUST
+                );
+            } else if (to != null) {
+                queryBuilder.add(
+                        LongPoint.newRangeQuery(Indexer.Fields.DATE, 0, to.getTime() / 1000),
+                        BooleanClause.Occur.MUST
                 );
             }
 
