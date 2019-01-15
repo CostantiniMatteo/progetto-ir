@@ -19,11 +19,12 @@ def home():
     if 'q' in request.args:
         r = requests.get(BASE_URL + "search", params={'q': request.args.get('q')})
         r_json = r.json()
-        return jsonify(r_json)
+        print(request.args.to_dict(flat=True))
+        return jsonify(r_json["results"])
 
     else:
 
-        return render_template('index.html')
+        return render_template('index.html', users=["user1", "user2"])
 
 @app.route('/tweet/html', methods = ['GET'])
 def get_tweet_html():
