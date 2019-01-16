@@ -47,7 +47,7 @@ public class UserProfile {
 
 
     public static List<String> getUserIds() {
-        var result = List.copyOf(UserProfile.userIds);
+        var result = new ArrayList<>(UserProfile.userIds);
         result.add(0, "custom");
         return result;
     }
