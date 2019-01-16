@@ -17,14 +17,18 @@ EMBED_URL = "https://publish.twitter.com/oembed?url=https://twitter.com/Interior
 def home():
 
     if 'q' in request.args:
-        r = requests.get(BASE_URL + "search", params={'q': request.args.get('q')})
+        params = request.args.to_dict(flat=True)
+        print(params)
+
+        r = requests.get(BASE_URL + "search", params=params)
+        print(r)
         r_json = r.json()
-        print(request.args.to_dict(flat=True))
         return jsonify(r_json["results"])
 
     else:
-
-        return render_template('index.html', users=["user1", "user2"])
+        r = requests.get(BASE_URL + "users")
+        print(r.json())
+        return render_template('index.html', users=r.json())
 
 @app.route('/tweet/html', methods = ['GET'])
 def get_tweet_html():

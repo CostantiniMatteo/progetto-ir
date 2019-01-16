@@ -157,7 +157,7 @@
                         <div class="col s12 m1">
                           <div class="row">
                             <div class="input-field col s12 required" id="img_container" style="margin-top: 0px;">
-                              <img height='72' src="{{ url_for('static', filename='images/logo.png') }}">
+                              <img style="max-width: 100%;max-height: 100%;" src="{{ url_for('static', filename='images/logo.png') }}">
                             </div>
                           </div>
                         </div>
@@ -184,23 +184,6 @@
                     <div class="col s12">
                       <div class="layout-row row">
 
-                        <div class="col s12 m4">
-                          <div class="layout-column">
-                            <div class="row">
-                              <div class="input-field col s12 required" id="startDate_container">
-                                <input data-date-format="Y-m-d" data-form-control="date" data-lang="it" id="startDate" name="startDate" type="text">
-                                <label class="active" for="startDate">Start Date</label>
-                              </div>
-                            </div>
-                            <div class="row">
-                              <div class="input-field col s12 required" id="endDate_container">
-                                <input data-date-format="Y-m-d" data-form-control="date" data-lang="it" id="endDate" name="endDate" type="text">
-                                <label class="active" for="endDate">end Date</label>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
                         <div class="col s12 m2">
                           <div class="layout-column">
                             <div class="row">
@@ -213,7 +196,7 @@
                             <div class="row">
                               <div class="checkbox-field col s12" id="url_container">
                                 <label>
-                                  <input class="filled-in " id="url" name="url" type="checkbox">
+                                  <input class="filled-in " id="url" name="url" type="checkbox" checked="">
                                   <span for="url">URL</span>
                                 </label>
                               </div>
@@ -226,10 +209,34 @@
                                 </label>
                               </div>
                             </div>
-
+                            <div class="row">
+                              <div class="checkbox-field col s12" id="filterDuplicates_container">
+                                <label>
+                                  <input class="filled-in " id="filterDuplicates" name="filterDuplicates" type="checkbox">
+                                  <span for="filterDuplicates">Duplicates</span>
+                                </label>
+                              </div>
+                            </div>
 
                           </div>
                         </div>
+                        <div class="col s12 m4">
+                          <div class="layout-column">
+                            <div class="row">
+                              <div class="input-field col s12 required" id="since_container">
+                                <input data-date-format="d-m-Y" data-form-control="date" data-lang="it" id="since" name="since" type="text">
+                                <label class="active" for="since">Start Date</label>
+                              </div>
+                            </div>
+                            <div class="row">
+                              <div class="input-field col s12 required" id="to_container">
+                                <input data-date-format="d-m-Y" data-form-control="date" data-lang="it" id="to" name="to" type="text">
+                                <label class="active" for="to">End Date</label>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
 
                         <div class="col s12 m4">
                           <div class="layout-column">
