@@ -17,6 +17,7 @@ public class TweetResultEntity {
     public float lengthScore;
     public float retweetScore;
     public float qrScore;
+    public boolean isDuplicate;
 
     public TweetResultEntity(long rank, String tweetId, String author, long retweetCount, long favoriteCount, Date date, String text, float score, float luceneScore, float frScore, float urlScore, float lengthScore, float retweetScore, float qrScore) {
         this.rank = rank;
@@ -33,6 +34,7 @@ public class TweetResultEntity {
         this.lengthScore = lengthScore;
         this.retweetScore = retweetScore;
         this.qrScore = qrScore;
+        this.isDuplicate = false;
     }
 
     public String scoreRepr() {

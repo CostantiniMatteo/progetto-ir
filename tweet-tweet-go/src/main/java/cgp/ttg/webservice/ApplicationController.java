@@ -20,25 +20,25 @@ public class ApplicationController {
             @RequestParam(value = "n", defaultValue = "100") int n,
             @RequestParam(value = "full", defaultValue = "false") boolean full,
             @RequestParam(value = "url", defaultValue = "true") boolean weightUrl,
-            @RequestParam(value = "media", defaultValue = "true") boolean weightMedia,
+            @RequestParam(value = "filterDuplicates", defaultValue = "true") boolean filterDuplicates,
             @RequestParam(value = "since", required = false) Date since,
             @RequestParam(value = "to", required = false) Date to,
             @RequestParam(value = "topic", required = false) String topic,
             @RequestParam(value = "user", required = false) String user
     ) {
         var userProfile = UserProfile.getProfile(user);
-        var result = QueryEngine.match(query, n, full, weightUrl, since, to, topic, userProfile);
+        var result = QueryEngine.match(query, n, full, weightUrl, filterDuplicates, since, to, topic, userProfile);
         return ResponseEntity.ok(result);
     }
 
     @RequestMapping(value = "/topics", method = RequestMethod.GET)
     public ResponseEntity<List<String>> getTopics() {
-        return ResponseEntity.ok(Arrays.asList(UserProfile.topics));
+        return ResponseEntity.ok(UserProfile.getTopics());
     }
 
     @RequestMapping(value = "/users", method = RequestMethod.GET)
     public ResponseEntity<List<String>> getUsers() {
-        return ResponseEntity.ok(Arrays.asList(UserProfile.userIds));
+        return ResponseEntity.ok(UserProfile.getUserIds());
     }
 
     @RequestMapping(value = "/update-profile/{topic}/{tweetId}", method = RequestMethod.POST)

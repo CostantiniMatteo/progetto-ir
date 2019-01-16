@@ -4,10 +4,10 @@ import java.util.List;
 
 public class ResultEntity {
     public List<TweetResultEntity> results;
-    public List<TweetResultEntity> duplicates;
+    int nDuplicates;
 
-    public ResultEntity(List<TweetResultEntity> results, List<TweetResultEntity> duplicates) {
+    public ResultEntity(List<TweetResultEntity> results, int nDuplicates) {
         this.results = results;
-        this.duplicates = duplicates;
+        this.nDuplicates = nDuplicates;
     }
 }

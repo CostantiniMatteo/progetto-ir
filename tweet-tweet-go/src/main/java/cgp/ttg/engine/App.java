@@ -31,9 +31,9 @@ public class App {
                     System.out.println("User selezionato: " + user.getId());
                 } else {
                     if ("none".equals(topic)) {
-                        QueryEngine.match(query, 150, false, true, null, null, null, null);
+                        QueryEngine.match(query, 150, false, true, true, null, null, null, null);
                     } else {
-                        QueryEngine.match(query, 150, false, true, null, null, topic, user);
+                        QueryEngine.match(query, 150, false, true, true, null, null, topic, user);
                     }
                     System.out.println("User: " + user.getId() + "; Topic: " + topic);
                     System.out.println("\n\n");
@@ -43,7 +43,7 @@ public class App {
     }
 
     private static void doIndexing() throws Exception {
-        for (var topic : UserProfile.topics) {
+        for (var topic : UserProfile.getTopics()) {
             var users = Repository.selectTopNUsersByTopic(100, topic);
             var tweets = new LinkedList<Tweet>();
             for (var user : ProgressBar.wrap(users, "Users")) {

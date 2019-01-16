@@ -27,7 +27,7 @@ public class QueryEngine {
     public static final float RETWEET_MULT = 2.0f;
 
 
-    public static ResultEntity match(String stringQuery, int n, boolean full, boolean weightUrl, Date since, Date to, String topic, UserProfile userProfile) {
+    public static ResultEntity match(String stringQuery, int n, boolean full, boolean weightUrl, boolean filterDuplicates, Date since, Date to, String topic, UserProfile userProfile) {
         ArrayList<TweetResultEntity> match;
 
         try {
@@ -129,9 +129,10 @@ public class QueryEngine {
 
             System.err.println("FINDING NEAR-DUPLICATES");
 //          Near-duplicates detection
-            var nearDuplicates = new ArrayList<TweetResultEntity>();
             match = new ArrayList<>();
             var isDuplicate = new ArrayList<>(Collections.nCopies(unfilteredResults.size(), false));
+            var nDuplicates = 0;
+
             for (int i = 0; i < unfilteredResults.size() - 1; i++) {
                 if (isDuplicate.get(i)) continue;
 
@@ -148,6 +149,7 @@ public class QueryEngine {
 
 //                    if (ndd1.computeSimilarity(ndd2) > 0.75) {
                     if (NDD.overlapCoefficient(tokenSet1, tokenSet2) > 0.8) {
+                        nDuplicates++;
                         if (res1.rank >= res2.rank) {
                             isDuplicate.set(j, true);
                         } else {
@@ -160,17 +162,19 @@ public class QueryEngine {
 
             System.err.println("FINALIZATION");
             for (int i = 0; i < unfilteredResults.size(); i++) {
-                if (isDuplicate.get(i)) {
-                    nearDuplicates.add(unfilteredResults.get(i));
-                } else {
+                if (!isDuplicate.get(i)) {
                     match.add(unfilteredResults.get(i));
+                } else if (!filterDuplicates) {
+                    var tweetResultEntity = unfilteredResults.get(i);
+                    tweetResultEntity.isDuplicate = true;
+                    match.add(tweetResultEntity);
                 }
             }
 
             // Debug
             System.err.println("RESULTS");
             printDocuments(match, maxRetFav);
-            return new ResultEntity(match, nearDuplicates);
+            return new ResultEntity(match, nDuplicates);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
