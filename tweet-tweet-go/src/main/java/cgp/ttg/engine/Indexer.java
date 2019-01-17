@@ -97,7 +97,7 @@ public class Indexer {
                 indexWriter.commit();
             }
 
-            for (var tweet : ProgressBar.wrap(tweets, "Indexing")) {
+            for (var tweet : tweets) {
                 if ("en".equals(tweet.lang)) {
                     indexWriter.addDocument(tweetToDocument(tweet));
                 }

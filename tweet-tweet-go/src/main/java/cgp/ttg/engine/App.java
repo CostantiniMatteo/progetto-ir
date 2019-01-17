@@ -44,13 +44,13 @@ public class App {
 
     private static void doIndexing() throws Exception {
         for (var topic : UserProfile.getTopics()) {
-            var users = Repository.selectTopNUsersByTopic(100, topic);
-            var tweets = new LinkedList<Tweet>();
+            var users = Repository.selectTopNUsersByTopic(5000, topic);
+            System.err.println("Topic: " + topic);
             for (var user : ProgressBar.wrap(users, "Users")) {
                 var userTweets = Repository.selectUserTweets(user);
-                tweets.addAll(userTweets);
+                Indexer.createIndex(userTweets);
             }
-            Indexer.createIndex(tweets);
+
         }
     }
 
