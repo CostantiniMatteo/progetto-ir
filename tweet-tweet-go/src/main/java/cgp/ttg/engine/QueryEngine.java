@@ -150,7 +150,7 @@ public class QueryEngine {
 //                    if (ndd1.computeSimilarity(ndd2) > 0.75) {
                     if (NDD.overlapCoefficient(tokenSet1, tokenSet2) > 0.8) {
                         nDuplicates++;
-                        if (res1.rank >= res2.rank) {
+                        if (res1.score >= res2.score) {
                             isDuplicate.set(j, true);
                         } else {
                             isDuplicate.set(i, true);

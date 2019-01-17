@@ -64,6 +64,10 @@
 
       function sendQuery(){
 
+        async function setNDuplicates(nDuplicates) {
+          $("#nDuplicates-container").text("Duplicates: " + nDuplicates)
+        }
+
         $.ajax({
            type: "GET",
            url: "{{ url_for('home') }}",
@@ -72,6 +76,7 @@
            success: function(data) {
             $(".demo-container").slice(1).remove();
             console.log(data);
+            setNDuplicates(data["nDuplicates"])
             getTweets(data["results"]);
             //aggiungere numero di duplicati
            }
@@ -241,7 +246,7 @@
                             <div class="row">
                               <div class="checkbox-field col s12" id="filterDuplicates_container">
                                 <label>
-                                  <input class="filled-in " id="filterDuplicates" name="filterDuplicates" type="checkbox">
+                                  <input class="filled-in " id="filterDuplicates" name="filterDuplicates" type="checkbox" checked="">
                                   <span for="filterDuplicates">No Duplicates</span>
                                 </label>
                               </div>
@@ -335,8 +340,8 @@
                         </div>
                         <div class="col s12 m2">
                           <div class="layout-column">
-                            <div class="row duplicates">
-                              Duplicates: 30
+                            <div id='nDuplicates-container' class="row duplicates">
+
                             </div>
                           </div>
                         </div>

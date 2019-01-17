@@ -3,8 +3,8 @@ package cgp.ttg.webservice;
 import java.util.List;
 
 public class ResultEntity {
-    List<TweetResultEntity> results;
-    int nDuplicates;
+    public List<TweetResultEntity> results;
+    public int nDuplicates;
 
     public ResultEntity(List<TweetResultEntity> results, int nDuplicates) {
         this.results = results;
