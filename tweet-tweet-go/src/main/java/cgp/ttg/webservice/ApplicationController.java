@@ -3,6 +3,8 @@ package cgp.ttg.webservice;
 import cgp.ttg.engine.QueryEngine;
 import cgp.ttg.engine.Repository;
 import cgp.ttg.engine.UserProfile;
+import ch.qos.logback.classic.net.SimpleSocketServer;
+import ch.qos.logback.core.net.SyslogOutputStream;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +23,7 @@ public class ApplicationController {
             @RequestParam(value = "n", defaultValue = "100") int n,
             @RequestParam(value = "full", defaultValue = "false") boolean full,
             @RequestParam(value = "url", defaultValue = "false") boolean weightUrl,
-            @RequestParam(value = "filterDuplicates", defaultValue = "true") boolean filterDuplicates,
+            @RequestParam(value = "filterDuplicates", defaultValue = "false") boolean filterDuplicates,
             @RequestParam(value = "since", required = false) @DateTimeFormat(pattern="dd-MM-yyyy") Date since,
             @RequestParam(value = "to", required = false) @DateTimeFormat(pattern="dd-MM-yyyy") Date to,
             @RequestParam(value = "topic", required = false) String topic,
