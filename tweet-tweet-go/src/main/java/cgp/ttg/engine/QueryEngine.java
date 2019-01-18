@@ -5,6 +5,7 @@ import cgp.ttg.webservice.TweetResultEntity;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.QueryParser;
@@ -26,8 +27,8 @@ public class QueryEngine {
     public static final float RETWEET_MULT = 2.0f;
 
 
-    public static ResultEntity match(String stringQuery, int n, boolean full, boolean weightUrl, Date since, Date to, String topic, UserProfile userProfile) {
-        ArrayList<TweetResultEntity> match = null;
+    public static ResultEntity match(String stringQuery, int n, boolean full, boolean weightUrl, boolean filterDuplicates, Date since, Date to, String topic, UserProfile userProfile) {
+        ArrayList<TweetResultEntity> match;
 
         try {
             var path = Paths.get(Indexer.INDEX_PATH);
@@ -50,8 +51,25 @@ public class QueryEngine {
                 );
             }
 
+            if (since != null && to != null) {
+                queryBuilder.add(
+                        LongPoint.newRangeQuery(Indexer.Fields.DATE, since.getTime() / 1000, to.getTime() / 1000),
+                        BooleanClause.Occur.MUST
+                );
+            } else if (since != null) {
+                queryBuilder.add(
+                        LongPoint.newRangeQuery(Indexer.Fields.DATE, since.getTime() / 1000, Long.MAX_VALUE),
+                        BooleanClause.Occur.MUST
+                );
+            } else if (to != null) {
+                queryBuilder.add(
+                        LongPoint.newRangeQuery(Indexer.Fields.DATE, 0, to.getTime() / 1000),
+                        BooleanClause.Occur.MUST
+                );
+            }
+
             // Personalize query
-            if (userProfile != null && topic != null) {
+            if (userProfile != null && topic != null && !"".equals(topic)) {
                 for (var term : userProfile.topicProfile(topic)) {
                     queryBuilder.add(new BoostQuery(
                             new TermQuery(new Term(Indexer.Fields.TEXT, term)), 1.0f / 3
@@ -111,9 +129,10 @@ public class QueryEngine {
 
             System.err.println("FINDING NEAR-DUPLICATES");
 //          Near-duplicates detection
-            var nearDuplicates = new ArrayList<TweetResultEntity>();
             match = new ArrayList<>();
             var isDuplicate = new ArrayList<>(Collections.nCopies(unfilteredResults.size(), false));
+            var nDuplicates = 0;
+
             for (int i = 0; i < unfilteredResults.size() - 1; i++) {
                 if (isDuplicate.get(i)) continue;
 
@@ -130,7 +149,8 @@ public class QueryEngine {
 
 //                    if (ndd1.computeSimilarity(ndd2) > 0.75) {
                     if (NDD.overlapCoefficient(tokenSet1, tokenSet2) > 0.8) {
-                        if (res1.rank >= res2.rank) {
+                        nDuplicates++;
+                        if (res1.score >= res2.score) {
                             isDuplicate.set(j, true);
                         } else {
                             isDuplicate.set(i, true);
@@ -142,17 +162,19 @@ public class QueryEngine {
 
             System.err.println("FINALIZATION");
             for (int i = 0; i < unfilteredResults.size(); i++) {
-                if (isDuplicate.get(i)) {
-                    nearDuplicates.add(unfilteredResults.get(i));
-                } else {
+                if (!isDuplicate.get(i)) {
                     match.add(unfilteredResults.get(i));
+                } else if (!filterDuplicates) {
+                    var tweetResultEntity = unfilteredResults.get(i);
+                    tweetResultEntity.isDuplicate = true;
+                    match.add(tweetResultEntity);
                 }
             }
 
             // Debug
             System.err.println("RESULTS");
             printDocuments(match, maxRetFav);
-            return new ResultEntity(match, nearDuplicates);
+            return new ResultEntity(match, nDuplicates);
         } catch (Exception e) {
             e.printStackTrace();
             return null;

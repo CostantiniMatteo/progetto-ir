@@ -14,8 +14,8 @@ import java.util.stream.Collectors;
 
 public class UserProfile {
     private static final String USER_PROFILES_PATH = "tweet-tweet-go/src/main/resources/";
-    public static String[] userIds = new String[] { "user1", "user2" };
-    public static String[] topics = new String[] { "sport", "music", "tech", "cs", "politics", "cinema", "food", "science", "cars", "finance" };
+    private static List<String> userIds = Arrays.asList("user1", "user2");
+    private static List<String> topics = Arrays.asList("sport", "music", "tech", "cs", "politics", "cinema", "food", "science", "cars", "finance");
     private static HashMap<String, HashMap<String, List<String>>> userDocumentsByTopic = initUserDocumentsByTopic();
     private static HashMap<String, UserProfile> users = new HashMap<>() {{
         put("custom", new UserProfile("custom", new HashMap<>()));
@@ -43,6 +43,17 @@ public class UserProfile {
             users.put(userId, user);
         }
         return user;
+    }
+
+
+    public static List<String> getUserIds() {
+        var result = new ArrayList<>(UserProfile.userIds);
+        result.add(0, "custom");
+        return result;
+    }
+
+    public static List<String> getTopics() {
+        return List.copyOf(UserProfile.topics);
     }
 
     public UserProfile(String id, HashMap<String, List<Tweet>> documents) {
