@@ -18,7 +18,11 @@ public class UserProfile {
     private static List<String> topics = Arrays.asList("sport", "music", "tech", "cs", "politics", "cinema", "food", "science", "cars", "finance");
     private static HashMap<String, HashMap<String, List<String>>> userDocumentsByTopic = initUserDocumentsByTopic();
     private static HashMap<String, UserProfile> users = new HashMap<>() {{
-        put("custom", new UserProfile("custom", new HashMap<>()));
+        put("custom", new UserProfile("custom", new HashMap<>() {{
+            for (var topic : topics) {
+                put(topic, new ArrayList<Tweet>());
+            }
+        }}));
     }};
 
 

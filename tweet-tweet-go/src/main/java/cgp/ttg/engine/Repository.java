@@ -87,27 +87,38 @@ public class Repository {
         var stmt = c.createStatement();
         var rs = stmt.executeQuery(query);
 
+        TwitterUser user = null;
         if (rs.next()) {
-            return new TwitterUser(rs.getString("json"), rs.getString("topic"));
+            user = new TwitterUser(rs.getString("json"), rs.getString("topic"));
         }
+        rs.close();
+        stmt.close();
+        c.close();
 
-        return null;
+        return user;
     }
 
     public static Tweet findTweetByTweetId(String tweetId) {
         String query = "select * from tweets where tweet_id = " + tweetId + ";";
+
+        Tweet tweet = null;
         try {
             var c = getConnection();
             var stmt = c.createStatement();
             var rs = stmt.executeQuery(query);
 
+
             if (rs.next()) {
-                return new Tweet(rs.getString("json"),
+                tweet = new Tweet(rs.getString("json"),
                         findUserByScreenName(rs.getString("user_id")));
             }
+            rs.close();
+            stmt.close();
+            c.close();
+
         } catch (Exception e) { }
 
-        return null;
+        return tweet;
     }
 
 
