@@ -23,12 +23,15 @@ public class QueryEngine {
     public static final float IS_QUOTE_SCORE = -0.5f;
     public static final float IS_RETWEET_SCORE = -0.5f;
     public static final float LUCENE_MULT = 3.0f;
-    public static final float FOLLOWER_MULT = 2.0f;
+    public static final float LUCENE_MULT_PERS = 3.0f;
+    public static final float FOLLOWER_MULT = 1.0f;
     public static final float RETWEET_MULT = 2.0f;
+    public static final float LENGTH_MULT = 0.5f;
 
 
     public static ResultEntity match(String stringQuery, int n, boolean full, boolean weightUrl, boolean filterDuplicates, Date since, Date to, String topic, UserProfile userProfile) {
         ArrayList<TweetResultEntity> match;
+        var isPersonalized = userProfile != null && topic != null && !"".equals(topic);
 
         try {
             var path = Paths.get(Indexer.INDEX_PATH);
@@ -69,7 +72,7 @@ public class QueryEngine {
             }
 
             // Personalize query
-            if (userProfile != null && topic != null && !"".equals(topic)) {
+            if (isPersonalized) {
                 for (var term : userProfile.topicProfile(topic)) {
                     queryBuilder.add(new BoostQuery(
                             new TermQuery(new Term(Indexer.Fields.TEXT, term)), 1.0f / 3
@@ -117,9 +120,10 @@ public class QueryEngine {
 
             System.err.println("RESCORING AND RERANKING");
             // Re-score & Re-rank
+            var lucene_mult = isPersonalized ? LUCENE_MULT_PERS : LUCENE_MULT;
             for (var i = 0; i < scoreDocs.length; i++) {
                 doc = docs.get(i);
-                var resultEntity = processDoc(doc, i, scoreDocs[i].score, maxScore, maxLength, maxRetFav, weightUrl);
+                var resultEntity = processDoc(doc, i, scoreDocs[i].score, maxScore, maxLength, maxRetFav, weightUrl, lucene_mult);
                 scoreDocs[i].score = resultEntity.score;
                 unfilteredResults.add(resultEntity);
             }
@@ -181,7 +185,7 @@ public class QueryEngine {
         }
     }
 
-    private static TweetResultEntity processDoc(Document doc, int rank, float score, float maxScore, long maxLength, long maxRetFav, boolean weightUrl) {
+    private static TweetResultEntity processDoc(Document doc, int rank, float score, float maxScore, long maxLength, long maxRetFav, boolean weightUrl, float lucene_mult) {
         var tweetId = doc.getField(Indexer.Fields.TWEET_ID).stringValue();
         var author = doc.getField(Indexer.Fields.USER).stringValue();
         var userFollowers = doc.getField(Indexer.Fields.USER_FOLLOWERS).numericValue().longValue();
@@ -189,13 +193,13 @@ public class QueryEngine {
         var date = new Date(doc.getField(Indexer.Fields.DATE).numericValue().longValue() * 1000);
         var text = doc.getField(Indexer.Fields.TEXT).stringValue();
         var urlScore = weightUrl && "true".equals(doc.getField(Indexer.Fields.HAS_URLS).stringValue()) ? URL_SCORE : 0;
-        var lengthScore = 1.0f * doc.getField(Indexer.Fields.TEXT).stringValue().length() / maxLength;
+        var lengthScore = LENGTH_MULT * doc.getField(Indexer.Fields.TEXT).stringValue().length() / maxLength;
         var retweetCount = doc.getField(Indexer.Fields.RETWEET_COUNT).numericValue().longValue();
         var favoriteCount = doc.getField(Indexer.Fields.FAVORITE_COUNT).numericValue().longValue();
         var retfavCount = favoriteCount + retweetCount;
 
-        var baseScore = LUCENE_MULT * score / maxScore;
-        var frScore = FOLLOWER_MULT * (1.0f * userFollowers / (userFollowers + userFollowing));
+        var baseScore = lucene_mult * score / maxScore;
+        var frScore = FOLLOWER_MULT * (float) (Math.atan(1.0f * userFollowers / (userFollowers + userFollowing)) * 2/Math.PI);
         var frul = frScore + urlScore + lengthScore;
         var retweetScore = RETWEET_MULT * retfavCount / maxRetFav;
         var qrScore = ("true".equals(doc.getField(Indexer.Fields.IS_QUOTE).stringValue()) ? IS_QUOTE_SCORE : 0)
