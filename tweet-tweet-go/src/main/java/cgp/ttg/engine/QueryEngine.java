@@ -25,7 +25,7 @@ public class QueryEngine {
     public static final float LUCENE_MULT = 3.0f;
     public static final float LUCENE_MULT_PERS = 3.0f;
     public static final float FOLLOWER_MULT = 1.0f;
-    public static final float RETWEET_MULT = 2.0f;
+    public static final float RETWEET_MULT = 1.0f;
     public static final float LENGTH_MULT = 0.5f;
 
 
@@ -199,7 +199,7 @@ public class QueryEngine {
         var retfavCount = favoriteCount + retweetCount;
 
         var baseScore = lucene_mult * score / maxScore;
-        var frScore = FOLLOWER_MULT * (float) (Math.atan(1.0f * userFollowers / (userFollowers + userFollowing)) * 2/Math.PI);
+        var frScore = FOLLOWER_MULT * (float) Math.sqrt(1 - Math.pow(1 - (1.0f * userFollowers / (userFollowers + userFollowing)), 2));
         var frul = frScore + urlScore + lengthScore;
         var retweetScore = RETWEET_MULT * retfavCount / maxRetFav;
         var qrScore = ("true".equals(doc.getField(Indexer.Fields.IS_QUOTE).stringValue()) ? IS_QUOTE_SCORE : 0)
