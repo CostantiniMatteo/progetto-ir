@@ -1,0 +1,36 @@
+version: "3.2"
+
+services:
+  tweet-tweet-go:
+    build:
+      context: ../tweet-tweet-go
+      dockerfile: tweet-tweet-go.Dockerfile
+    image: tweet-tweet-go
+    container_name: tweet-tweet-go
+    volumes:
+      - type: bind
+        source: ../index
+        target: /app/index
+    expose:
+      - 8080
+    networks:
+      - progetto-ir
+    restart: on-failure
+
+  webapp:
+    build:
+     context: ../webapp
+     dockerfile: webapp.Dockerfile
+    image: webapp
+    container_name: webapp
+    expose:
+     - 80
+    ports:
+     - 80:80
+    networks:
+     - progetto-ir
+    restart: on-failure
+
+networks:
+  progetto-ir:
+    driver: bridge
