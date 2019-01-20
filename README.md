@@ -31,7 +31,7 @@ Then to use the Search Engine with the Web App:
 ```
 $ git clone https://github.com/CostantiniMatteo/progetto-ir.git && cd progetto-ir
 $ cd tweet-tweet-go
-$ maven clean install -DskipTests
+$ mvn clean install -DskipTests
 $ cd ..
 $ java -jar tweet-tweet-go/target/progetto-ir-0.0.1-SNAPSHOT.jar
 ```
