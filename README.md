@@ -42,7 +42,7 @@ $ pip install -r requirements.txt
 $ python application.py
 ```
 
-The webapp will be deployed at [localhost](http://127.0.0.1).
+The webapp will be deployed at [localhost](http://127.0.0.1:5000), port 5000.
 
 The Search Engine includes also a App.java with main to interact with the Search Engine from the terminal.
 
