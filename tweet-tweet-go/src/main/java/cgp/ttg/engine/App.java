@@ -17,7 +17,7 @@ public class App {
         var user = UserProfile.getProfile("custom");
         while (true) {
             try {
-                System.out.println("Escimi la query...");
+                System.out.println("Insert a query, change user (e.g. 'user user1') or change topic (e.g. 'topic finance')");
                 var query = in.nextLine();
 
                 if ("".equals(query)) {
