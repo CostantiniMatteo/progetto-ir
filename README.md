@@ -31,6 +31,7 @@ $ java -jar tweet-tweet-go/target/progetto-ir-0.0.1-SNAPSHOT.jar
 And to run the webapp:
 ```
 $ cd progetto-ir/webapp
+$ pip install -r requirements.txt
 $ python application.py
 ```
 
