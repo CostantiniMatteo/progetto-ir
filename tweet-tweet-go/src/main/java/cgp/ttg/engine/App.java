@@ -8,8 +8,8 @@ public class App {
 
     public static void main(String[] args) throws Exception {
         var in = new Scanner(System.in);
-        doIndexing();
-//        doQuery(in);
+//        doIndexing();
+        doQuery(in);
     }
 
     private static void doQuery(Scanner in) {

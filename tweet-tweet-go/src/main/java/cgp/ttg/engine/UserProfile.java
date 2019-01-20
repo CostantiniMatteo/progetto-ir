@@ -13,7 +13,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class UserProfile {
-    private static final String USER_PROFILES_PATH = "/app/users/";
+    private static final String USER_PROFILES_PATH = "tweet-tweet-go/src/main/resources/";
     private static List<String> userIds = Arrays.asList("user1", "user2", "user3", "user4", "user5");
     private static List<String> topics = Arrays.asList("sport", "music", "tech", "cs", "politics", "cinema", "food", "science", "cars", "finance");
     private static HashMap<String, HashMap<String, List<String>>> userDocumentsByTopic = initUserDocumentsByTopic();
@@ -77,7 +77,17 @@ public class UserProfile {
     }
 
     public Set<String> topicProfile(String topic) {
-        return this.profile.getOrDefault(topic, new HashSet<>());
+        var result = new HashSet<String>();
+
+        if ("all".equals(topic)) {
+            for (var key : this.profile.keySet()) {
+                result.addAll(this.profile.getOrDefault(key, new HashSet<>()));
+            }
+        } else {
+            result.addAll(this.profile.getOrDefault(topic, new HashSet<>()));
+        }
+
+        return result;
     }
 
     private void initProfile() {

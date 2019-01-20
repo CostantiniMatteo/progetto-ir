@@ -10,6 +10,7 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.*;
+import org.apache.lucene.search.similarities.ClassicSimilarity;
 import org.apache.lucene.store.FSDirectory;
 
 import java.io.IOException;
@@ -39,6 +40,7 @@ public class QueryEngine {
             var indexReader = DirectoryReader.open(dr);
             var indexSearcher = new IndexSearcher(indexReader);
             var analyzer = Indexer.getCustomAnalyzer();
+            indexSearcher.setSimilarity(new ClassicSimilarity());
 
             // Parse query
             var queryParser = new QueryParser(Indexer.Fields.TEXT, analyzer);
