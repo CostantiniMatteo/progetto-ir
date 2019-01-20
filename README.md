@@ -16,16 +16,16 @@ $ cd docker
 $ docker-compose up
 ```
 
-The webapp will be deployed at ()[localhost].
+The webapp will be deployed at [](localhost).
 
 ### Docker-less
+
+**Note**: You also need to change three paths in `tweet-tweet-go/src/main/java/cgp/ttg/engine/UserProfile.java` and `tweet-tweet-go/src/main/java/cgp/ttg/engine/Indexer.java`. Just swap the un-commented ones with the commented paths.
 
 #### Prerequisites
 
 If you don't want to use Docker you'll neet Python 3.x and Java 11 with Maven.
 Then to use the Search Engine with the Web App:
-
-**Note**: You also need to change three paths in `tweet-tweet-go/src/main/java/cgp/ttg/engine/UserProfile.java` and `tweet-tweet-go/src/main/java/cgp/ttg/engine/Indexer.java`. Just swap the un-commented ones with the commented paths.
 
 ```
 $ git clone https://github.com/CostantiniMatteo/progetto-ir.git && cd progetto-ir
@@ -42,7 +42,7 @@ $ pip install -r requirements.txt
 $ python application.py
 ```
 
-The webapp will be deployed at ()[localhost].
+The webapp will be deployed at [](localhost).
 
 The Search Engine includes also a App.java with main to interact with the Search Engine from the terminal.
 
