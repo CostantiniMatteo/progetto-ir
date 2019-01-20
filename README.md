@@ -7,7 +7,7 @@ Since the index is more than 7GB large and the indexing process takes quite a lo
 
 The index should be placed in the root directory of this project( `progetto-ir/`)
 
-## Gettin Started
+## Getting Started
 
 ### Docker
 The easiest way is to use Docker. To run the system just clone the project, `cd` into the docker folder and run `docker-compose`:
