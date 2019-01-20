@@ -16,7 +16,7 @@ $ cd docker
 $ docker-compose up
 ```
 
-The webapp will be deployed at [](localhost).
+The webapp will be deployed at [](127.0.0.1).
 
 ### Docker-less
 
@@ -42,7 +42,7 @@ $ pip install -r requirements.txt
 $ python application.py
 ```
 
-The webapp will be deployed at [](localhost).
+The webapp will be deployed at [](127.0.0.1).
 
 The Search Engine includes also a App.java with main to interact with the Search Engine from the terminal.
 
