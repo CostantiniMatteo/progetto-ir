@@ -201,7 +201,7 @@ public class QueryEngine {
         var retfavCount = favoriteCount + retweetCount;
 
         var baseScore = lucene_mult * score / maxScore;
-        var frScore = FOLLOWER_MULT * (float) Math.sqrt(1 - Math.pow(1 - (1.0f * userFollowers / (userFollowers + userFollowing)), 2));
+        var frScore = FOLLOWER_MULT * (1.0f * userFollowers / (userFollowers + userFollowing));
         var frul = frScore + urlScore + lengthScore;
         var retweetScore = RETWEET_MULT * retfavCount / maxRetFav;
         var qrScore = ("true".equals(doc.getField(Indexer.Fields.IS_QUOTE).stringValue()) ? IS_QUOTE_SCORE : 0)
