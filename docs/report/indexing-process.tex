@@ -1,0 +1,24 @@
+\section{Indexing Process}
+To index the documents a custom Lucene Analyzer has been adopted.
+The implemented custom Analyzer is based on the \textit{Lucene Classic Analyzer} in addition of some \textit{TokenFilter}.
+
+\begin{enumerate}
+    \item \textbf{Addresses filter}: discards URLs and email addresses. Tweets contain usually shortened urls which doesn not carry any kind of information.
+    \item \textbf{Classic Tokenizer}: produces tokens using spaces and 
+    punctuation as splitting point and discards them.
+    Unlike the Standard Tokenizer, the Classic Tokenizer preserves URLs, email addresses and strings with alphabetic characters and numbers separated with hyphens. Special characters such as \verb|( ) [ ] &| and so on are considered splitting points (e.g. \quotes{AX-02}, \quotes{21:35}, \quotes{larry@google.com}, \quotes{www.duckduckgo.com} are preserved and \quotes{document-based} is splitted discarding hyphen).
+    \item \textbf{Lower case transformation}.
+    \item \textbf{Stop word removal}.
+    \item \textbf{Porter stemming}.
+\end{enumerate}
+
+The structure of the Lucene Document that represent a Tweet is composed of several Fields, each of which is used to either perform queries on it or to compute a custom score for the matching phase. 
+Here is reported the list of the employed Fields with the respective use.
+
+\begin{itemize}
+    \item \verb|TWEET_ID|: the Id of the tweet which is then used to retrieve it for display
+    \item \verb|DATE|: creation date, used both to perform range queries and to chronologically order the results during the first matching phase described in \ref{subsec:rescoring-mechanism}.
+    \item \verb|TEXT|: the textual content of the tweet on which the query is made.
+    \item \verb|HASHTAG|: the list of hashtags used in the tweet used by the Search Engine jointly with \verb|TEXT|
+    \item \verb|IS_QUOTE|, \verb|IS_RETWEET|, \verb|HAS_URLS|, \verb|RETWEET_COUNT|, \verb|FAVORITE_COUNT|, \verb|USER_FOLLOWERS|, \verb|USER_FOLLOWING|: fields used to re-rank results based on the nature of social platform (Twitter).
+\end{itemize}

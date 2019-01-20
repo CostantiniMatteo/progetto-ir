@@ -1,0 +1,133 @@
+\documentclass[a4paper,12pt,openany,oneside]{article}
+\usepackage{geometry}
+ \geometry{
+ 	a4paper,
+ 	left=25mm,
+ 	top=30mm,
+ 	bottom=40mm,
+ 	right=25mm
+ }
+\usepackage{lmodern}
+
+% Packages AMS
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{amsfonts}
+\usepackage{listings}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{url}
+% Simboli matematici aggiuntivi
+\usepackage{stmaryrd}
+\usepackage{verbatim}
+% Per creare l'indice
+\usepackage{index}
+% Per spazi dopo le macro
+\usepackage{xspace}
+% Importazioni e manipolazione di grafica
+\usepackage{graphicx}
+% Per \begin{comment} ... \end{comment}
+\usepackage{comment}
+% Per la spaziatura tra linee
+\usepackage{setspace}
+% Per una migliore resa tipografica con pdflatex
+\usepackage{microtype}
+
+\usepackage{enumitem}
+
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{float}
+\usepackage[final]{pdfpages}
+\usepackage{caption}
+\usepackage[hidelinks]{hyperref}
+\usepackage{float}
+\usepackage{helvet}
+\usepackage{subcaption}
+
+% Per i disegni
+\usepackage{tikz}
+\usetikzlibrary{calc,patterns,angles,quotes}
+\usepackage{tkz-euclide}
+\usetkzobj{all}
+\usetikzlibrary{arrows}
+
+% Per font piccolo caption
+\usepackage[font=footnotesize]{caption}
+
+\usepackage{nameref}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{babel}
+\usepackage{numprint}
+\npthousandsep{\,}
+
+% Per quote belli 
+\newcommand{\quotes}[1]{``#1''}
+
+\usepackage[style=verbose]{biblatex}
+
+\usepackage{filecontents}% to embed the file `myreferences.bib` in your `.tex` file
+
+\begin{filecontents}{myreferences.bib}
+@inproceedings{nagmoti2010ranking,
+  title={Ranking approaches for microblog search},
+  author={Nagmoti, Rinkesh and Teredesai, Ankur and De Cock, Martine},
+  booktitle={Proceedings of the 2010 IEEE/WIC/ACM International Conference on Web Intelligence and Intelligent Agent Technology-Volume 01},
+  pages={153--157},
+  year={2010},
+  organization={IEEE Computer Society}
+}
+\end{filecontents}
+\addbibresource{myreferences.bib}
+
+\onehalfspacing
+
+\title{Personalized Search Engine for Microblog Content\\ \large{Information Retrieval Project Report}}
+\date{January 2019}
+\author{\normalsize Matteo Costantini \\ \normalsize 795125 \and \normalsize Dario Gerosa \\ \normalsize 793636 \and \normalsize Michele Perrotta \\ \normalsize 795152}
+
+\makeindex
+
+\begin{document}
+\selectfont
+\maketitle
+
+\section{Introduction}
+The goal of the project is to build a Search Engine for tweets crawled from Twitter. The solution must also offer personalised results with respect to a query using document-based personalization approach.
+The user have the option to select a topic and submit a query which will then customise the results based on the documents provided by the user to the system.
+
+The proposed solution implements a Search Engine based on Lucene with re-ranking of the results to take into account the nature of the documents and the platform from which they come from (e.g. retweets and author's followers). The personalization is performed using a \textit{bag-of-words} model with query expansion. All those functionalities are exposed via a Spring web service and a webapp written in Python with Flask allow to submit a query to the Search Engine and display the results.
+
+The crawler used to gather tweets to be indexed by the Search Engine is written in Python using a wrapper of the officials \textit{Twitter's APIs} and uses a \textit{PostgreSQL} database to store the raw documents before pre-processing and indexing.
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.8\textwidth]{search_engine.pdf}
+    \caption{Overview of the system}
+    \label{fig:search_engine}
+\end{figure}
+
+\input{crawling}
+\input{indexing-process}
+\input{search-engine}
+% \section{Evaluation}
+\input{experiments}
+
+\section{Conclusion}
+
+In this project we realised a custom Search Engine focused on microblog texts (Tweets, in this case) which is characterised by, as the name suggest, very short documents that cannot convey a lot of information. The techniques we adopted in the scoring system tried to capture the nature of the social network using the popularity of the tweet itself or of the author. Applying Near Duplicate Detection we tried to identify duplicates, retweets in particular, since they are widely used in Twitter and would have added too much noise to the search results.
+\\[0.8em]
+Finally we adopted a simple \textit{bag-of-words} model to personalize the query results. While it seems effective with queries on the entirety of the dataset (though far from perfect) the personalization fails at the customization of query results chronologically ordered.
+\\[0.8em]
+Possible future developments are:
+\begin{itemize}
+    \item Implement a custom Lucene Scorer to achieve a better personalization even on chronological search.
+    \item Replace the \textit{bag-of-words} model with a more effective one to improve the personalization.
+    \item Test the Search Engine on an annotated tweets corpus.
+    \item Statistically study on tweets fields such \verb|RETWEET_COUNT|, \verb|FAVORITE_COUNT|, \verb|HASHTAG|, \verb|FOLLOWERS|, \verb|FOLLOWING|.
+    \item Statistical study on how changing the scoring parameters affect ranking.
+    \item Perform parameter optimisation as the weight currently used are based on empirical experiments
+\end{itemize}
+
+\end{document}

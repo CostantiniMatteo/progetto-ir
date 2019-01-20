@@ -1,0 +1,91 @@
+\section{Search Engine}
+The Search Engine allows two different types of queries. The first one is based on the Boolean Model which will retrieve all relevant documents, followed by a chronological ordering of the tweets to select the $n$ most recent documents which is finally followed by a re-ranking of the documents to account for other factors (such as the number of retweets). The motivation that led to the implementation of a chronological search is that tweets tends to become less important over time which is a consequence of the nature of Twitter, i.e. an on-line data streaming social media.
+
+The second type of search, on the contrary, uses the standard Lucene matching system (Boolean Model to retrieve the relevant documents followed by the \textit{Vector Space Model} using Lucene's \textit{TFIDFSimilarity} - a revised cosine similarity - to compute the score of each document) to retrieve $n$ relevant documents. This phase is then followed by the same re-ranking strategy applied described for the first type of query.
+
+\subsubsection*{Lucene's Scoring Formula}
+VSM does not require weights to be \textit{Tf-idf} values, but \textit{Tf-idf }values are believed to produce search results of high quality, and so Lucene is using \textit{Tf-idf}. VSM score of document d for query q is the \textit{Cosine Similarity }of the weighted query vectors V(q) and V(d): 
+\begin{equation}\label{eq:cosine-sim}
+    cs(q, d) = \frac{V(q) \cdot V(d)}{|V(q)| |V(d)|} 
+\end{equation}
+Where $V(q) \cdot V(d)$ is the dot product of the weighted vectors, and $|V(q)|$ and |V(d)| are their Euclidean norms. \\
+Lucene refines VSM score for both search quality and usability: 
+\begin{itemize}
+    \item A different document length normalization factor is used, which normalizes to a vector equal to or larger than the unit vector: doc-len-norm$(d)$.
+    \item At indexing, users can specify that certain documents are more important than others, by assigning a document boost. For this, the score of each document is also multiplied by its boost value doc-boost$(d)$. 
+    \item Lucene is field based, hence each query term applies to a single field, document length normalization is by the length of the certain field, and in addition to document boost there are also document fields boosts.
+    \item The same field can be added to a document during indexing several times.
+    \item At search time users can specify boosts to each query, sub-query, and each query term, hence the contribution of a query term to the score of a document is multiplied by the boost of that query term query-boost$(q)$.
+    \item A document may match a multi term query without containing all the terms of that query (this is correct for some of the queries). 
+\end{itemize}
+Under the simplifying assumption of a single field in the index, we get Lucene's Conceptual scoring formula: 
+\begin{equation}\label{eq:lucene-sim}
+    s(q, d) = \text{query-boost}(q) \cdot \frac{V(q) \cdot V(d)}{|V(q)|} \cdot \text{doc-len-norm}(d) \cdot \text{doc-boost}(d)
+\end{equation}
+\\[0.8em]
+In any case, the first step is the query construction which is done following these steps:
+\begin{enumerate}
+    \item QueryParser creates a boolean clause, parsing the input text provided by the user.
+    \item The query is expanded and modified into a disjunction between the original clause and the queries on the Hashtag field (one for each term in the query).
+    \item If a date range or limit is specified the query is expanded with a RangeQuery on the the date field.
+    \item Finally, if a topic is given, the query will be furthermore expanded to account for user's interest.
+\end{enumerate}
+
+\subsection{Re-scoring Mechanism}\label{subsec:rescoring-mechanism}
+
+This section explains how the actual re-ranking is performed after the Lucene's matching function has retrieved a set $R$ of $n$ documents.
+The final score of the documents is calculated as a linear combination of different scores, the first being the score computed by Lucene in the previous step, called $score$ in the following formulas. Most of the scores employed were introduced in the paper \textit{Raking approaches for microblog search} \autocite{nagmoti2010ranking}.
+The first term of the linear combination is given by the \textit{base score} (\ref{eq:bs}), $bS$ that is, the normalized score computed by Lucene multiplied by a constant factor $lw$ (in the current implementation $lw = 3$).
+
+\begin{equation}\label{eq:bs}
+    bS = lw \cdot \frac{s_d}{max_{i \in R}{\; s_i}}
+\end{equation}
+
+The second term is the \textit{follower score} (\ref{eq:fs}) and takes into account the popularity of the author of a given tweet in the set of results. The idea is that a user is influential and shares useful information if he has a lot of followers. This could also happen if they are \quotes{socially active}. In this case a user will have a high number of followers but will also follow a high number of users itself. Thus the number of followers is normalized by the sum of the number of followers $ufi_d$ and the number of people the account is following $ufo_d$. Finally the term $fw$ is a constant factor to weight the score (in the current implementation $fw = 1$).
+
+\begin{equation}\label{eq:fs}
+    fS = fw \cdot \frac{ufi_d}{ufi_d + ufo_d}
+\end{equation}
+Another factor that it is taken into account, similar to the \textit{follower score} is the \textit{retweet score} (\ref{eq:rs}), that is how much the tweet has been shared on the platform. The idea is that the higher the number of retweets $r_d$ and favorites $fav_d$ the higher is the quality of the information shared in the tweet. This score is divided by the \textit{retweet score} of the document with most retweet and favorites in the set of documents $R$ in order to normalize the score in the range $[0, 1]$ and the is multiplied by a factor $rW$ (in the current implementation $rw = 1$).
+\begin{equation}\label{eq:rs}
+    rS = rw \cdot \frac{r_d + fav_d}{max_{i \in R}{\; r_i + fav_i}}
+\end{equation}
+Since a tweet can be a quote ($q_d = 1$) of another tweet or a retweet ($r_d$), the final score takes also this information into account in the \textit{quote score} (\ref{eq:qrs}) decreasing the score of the tweet if it's either a retweet or a quote. Both $qw$ and $rw$ are set to $-0.5$.
+\begin{equation}\label{eq:qrs}
+    qrS = q_d \cdot qw + r_d \cdot rw
+\end{equation}
+The \textit{length score} (\ref{eq:ls}) is based on the assumption that longer tweets contains more information (considering also that tweets are already very limited in length) and also to counterbalace the tendency of penalizing the score of longer documents implemented in Lucene. The score again is normalized dividing it by the longest document in the set $R$ and multiplying it for a constant factor $lw = 0.5$.
+\begin{equation}\label{eq:ls}
+    lS = lw \cdot \frac{l_d}{max_{ i \in R}{\; l_i}}
+\end{equation}
+The last factor that is taken into account is the presence of a URL in the tweet (\ref{eq:us}). Tweets are short documents and it is hard that they will contain a lot of information. The presence of an URL signals the intention of sharing additional information related to the tweet and that information can be retrieved at the specified URL. This value is constant for every tweet and is either 0 if the document does not contain a URL ($u_d$ = 0) of $uw$ if it does ($u_d = 1$).
+\begin{equation}\label{eq:us}
+    uS = uw \cdot u_d
+\end{equation}
+The final score (\ref{eq:s}) is thus calculated as the sum of all the previous terms and is used to re-rank the set of documents $R$ retrieved in the previous step.
+\begin{equation}\label{eq:s}
+    S = bS + fS + rS + qrS + lS + uS
+\end{equation}
+
+%    & baseS = luceneWeight * \frac{score_d}{max_{i \in R}{score_i}} \\
+%    & frS = followerWeight * \sqrt{1 - (\frac{userFollowers_d}{userFollowers_d + userFollowing_d})^2} \\
+%    & retweetS = retweetWeight * \frac{retweet_d + favorite_d}{max_{i \in R}{retweet_i + favorite_i}} \\
+%    & qrS = isQuote_d * isQuoteWeight + isRetweet_d * isRetweetWeight \\
+%    & lengthS = lengthMult * \frac{length_d}{max_{i \in R}{length_i}} \\
+%    & urlS = urlWeight * hasUrl_d \\
+%    & finalScore = baseS + frS + retweetS + qrS + lengthS + urlS \\
+
+
+\subsection{Personalization}
+The personalization has been implemented using a \textit{bag-of-words} model and query exapansion. For each topic the user select a number of documents that represent its interest and those documents are used to extract a bag of words.
+The personalization is topic dependent and the tweets selected by the user on a specific topic will only personalize queries against that specific topic.\\
+To test the system 5 predefined user profiles have been created, each with at least 3 topics and at least 10 document for each topic. A custom user profile with the possibility of selecting documents interactively has also been implemented.\\
+The bag of words for each topic is extracted from the documents provided by the user. Two strategies have been take into account: the first strategy used the same analyzer used during the indexing of the dataset to create a new index specific to the given topic and the given user and then the set of terms is used as bag of words; The second strategy is similar to the first one, bug only a subset of the terms is used to represent the user interests. For each term has been computed the $tf$ on the newly created index and the $idf$ on the original dataset. The terms were then sorted using the product of the two factors and only the most informative ones, for example the top 30 were selected for the bag of words.\\
+The personalization is then achieved through a query expansion updating the original query to a disjunction between the original query and the expansion terms. For each term in the bag of word related to the topic chosen by the user, a new disjuction is added to the query.
+
+\subsection{Near Duplicate Detection}
+Finally, before returning the set of documents, the Query Engine performs Near Duplicate Detection on the set of documents retrieved in order to find similar tweets and to flag them. This is done using the \textit{Overlap Coefficient} reported in \ref{eq:overlap-coefficient}, where the set of terms for each tweet consists of its bi-grams. If the $overlap(T_{d1}, T_{d2}) > 0.8$ for some documents $d1$ and $d2$ the system chooses the one with lower score and mark it as duplicate. The documents will still be returned and eventually visualised, but they will be flagged as duplicates.
+\begin{equation}\label{eq:overlap-coefficient}
+    overlap(X, Y) = \frac{|X \cap Y|}{min(|X|, |Y|)}
+\end{equation}
+Another measure, similar to the Overlap Coefficient, is the Jaccard coefficient which is faster and usually used instead of the Overlap coefficient. The choice fell on the latter because tweets are extremely short documents. Two overlapping tweets differing only in one word would be marked as non duplicates because the low number of terms in the document. This problem arises less using the Overlap coefficient and for that reason it has been chosen instead of the Jaccard coefficient.
