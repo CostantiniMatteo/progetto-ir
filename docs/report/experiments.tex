@@ -1,4 +1,12 @@
-\section{Experiments}
+\section{Evaluation}
+
+The Search Engine wasn't evaluated using the usual techniques for various following reasons. There was no suitable dataset available to assess the quality of the results, especially of the personalization process. Another issue is the assumption that a user write tweets regarding only one topic, leading to the introduction of noise in the Search Engine results.
+
+An option could have been to take a subset of the dataset, label it manually and use that to evaluate the search engine, but that option was also discarded for the following reasons. Furthermore, to select a decent subset of the dataset a tool to search the document is needed, and the implemented search engine couldn't be used for obvious reasons. The only available option was \textit{Luke}, but its interface isn't friendly and usable enough to search among all the data (especially considering the fact that all the indexing process was altered) and it would have taken too much time to do it properly.
+
+For those reasons the evaluation of the Search Engine has been limited to empirical experiments. In the same way and for the same reasons the personalization process has been evaluated.
+
+\subsubsection*{Experiments}
 
 The personalization has been tested searching for a generic word, such the word \quotes{car}, both in the non-personalized mode and in the personalized mode (with topic \quotes{Cars} and user profile with an interest for brands of car such \quotes{BMW} and \quotes{Tesla}).
 The expected and empirically confirmed behaviour is a moderate modification of the results: new tweets about the user interests appear and the generic ones go down.
