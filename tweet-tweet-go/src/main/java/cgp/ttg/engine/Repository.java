@@ -5,11 +5,11 @@ import java.sql.DriverManager;
 import java.util.ArrayList;
 
 public class Repository {
-//    static String HOST = "jdbc:postgresql://157.230.25.215:5432/progetto_ir";
-    static String HOST = "jdbc:postgresql://localhost:5432/progetto_ir";
+   static String HOST = "jdbc:postgresql://157.230.25.215:5432/progetto_ir";
+    // static String HOST = "jdbc:postgresql://localhost:5432/progetto_ir";
     static String USER = "matteo";
-//    static String PASSWORD = "correct horse battery staple";
-    static String PASSWORD = "";
+   static String PASSWORD = "correct horse battery staple";
+    // static String PASSWORD = "";
 
     public static Connection getConnection() throws Exception {
         Connection c = null;
