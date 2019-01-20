@@ -5,6 +5,8 @@ The goal of this project is to crawl tweets from Twitter and use the data to bui
 
 Since the index is more than 7GB large and the indexing process takes quite a long time (especially if querying the online database), we uploaded a zipped file in Google Drive.
 
+The index should be placed in the root directory of this project( `progetto-ir/`)
+
 ## Gettin Started
 
 ### Docker
@@ -31,7 +33,7 @@ Then to use the Search Engine with the Web App:
 ```
 $ git clone https://github.com/CostantiniMatteo/progetto-ir.git && cd progetto-ir
 $ cd tweet-tweet-go
-$ maven clean install -DskipTests
+$ mvn clean install -DskipTests
 $ cd ..
 $ java -jar tweet-tweet-go/target/progetto-ir-0.0.1-SNAPSHOT.jar
 ```
