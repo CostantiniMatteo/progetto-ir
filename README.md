@@ -22,13 +22,12 @@ The webapp will be deployed at [localhost](http://127.0.0.1).
 
 ### Docker-less
 
-You need to change the BASE_URL variable in `webapp/app.py` with the commented one.
-You also need to change three paths in `tweet-tweet-go/src/main/java/cgp/ttg/engine/UserProfile.java` and `tweet-tweet-go/src/main/java/cgp/ttg/engine/Indexer.java`. Just swap the un-commented ones with the commented paths.
+If you don't want to use Docker you need to change the BASE_URL variable in `webapp/app.py` with the commented one.
+And then to change three paths in `tweet-tweet-go/src/main/java/cgp/ttg/engine/UserProfile.java` and `tweet-tweet-go/src/main/java/cgp/ttg/engine/Indexer.java`. Just swap the un-commented ones with the commented paths.
 
 #### Prerequisites
-
-If you don't want to use Docker you'll neet Python 3.x and Java 11 with Maven.
-Then to use the Search Engine with the Web App:
+Yoy will also need Python 3.x and Java 11 with Maven.
+Then to build and run the Search Engine run these commands:
 
 ```
 $ git clone https://github.com/CostantiniMatteo/progetto-ir.git && cd progetto-ir
