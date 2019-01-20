@@ -20,7 +20,8 @@ The webapp will be deployed at [localhost](http://127.0.0.1).
 
 ### Docker-less
 
-**Note**: You also need to change three paths in `tweet-tweet-go/src/main/java/cgp/ttg/engine/UserProfile.java` and `tweet-tweet-go/src/main/java/cgp/ttg/engine/Indexer.java`. Just swap the un-commented ones with the commented paths.
+You need to change the BASE_URL variable in `webapp/app.py` with the commented one.
+You also need to change three paths in `tweet-tweet-go/src/main/java/cgp/ttg/engine/UserProfile.java` and `tweet-tweet-go/src/main/java/cgp/ttg/engine/Indexer.java`. Just swap the un-commented ones with the commented paths.
 
 #### Prerequisites
 
