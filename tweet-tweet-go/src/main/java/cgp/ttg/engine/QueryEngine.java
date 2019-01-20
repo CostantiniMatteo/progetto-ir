@@ -77,7 +77,7 @@ public class QueryEngine {
             if (isPersonalized) {
                 for (var term : userProfile.topicProfile(topic)) {
                     queryBuilder.add(new BoostQuery(
-                            new TermQuery(new Term(Indexer.Fields.TEXT, term)), 1.0f / 3
+                            new TermQuery(new Term(Indexer.Fields.TEXT, term)), 3
                     ), BooleanClause.Occur.SHOULD);
                 }
             }
