@@ -115,9 +115,9 @@ public class UserProfile {
                 }
 
                 termTfidfList.sort((a, b) -> Float.compare(b.tfidf, a.tfidf));
-//                if (termTfidfList.size() > 20) {
-//                    termTfidfList = termTfidfList.subList(0, 20);
-//                }
+                if (termTfidfList.size() > 25) {
+                    termTfidfList = termTfidfList.subList(0, 25);
+                }
                 this.profile.put(topic, termTfidfList.stream().map((i) -> i.term).collect(Collectors.toSet()));
             }
         } catch (Exception e) { }
