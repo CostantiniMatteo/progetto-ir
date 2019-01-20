@@ -1,6 +1,10 @@
 # Information Retrieval Project
 The goal of this project is to crawl tweets from Twitter and use the data to build a personalized Search Engine for microblog content.
 
+## Index
+
+Since the index is more than 7GB large and the indexing process takes quite a long time (especially if querying the online database), we uploaded a zipped file in Google Drive.
+
 ## Gettin Started
 
 ### Docker
@@ -20,6 +24,9 @@ The webapp will be deployed at ()[localhost].
 
 If you don't want to use Docker you'll neet Python 3.x and Java 11 with Maven.
 Then to use the Search Engine with the Web App:
+
+**Note**: You also need to change three paths in `tweet-tweet-go/src/main/java/cgp/ttg/engine/UserProfile.java` and `tweet-tweet-go/src/main/java/cgp/ttg/engine/Indexer.java`. Just swap the un-commented ones with the commented paths.
+
 ```
 $ git clone https://github.com/CostantiniMatteo/progetto-ir.git && cd progetto-ir
 $ cd tweet-tweet-go
