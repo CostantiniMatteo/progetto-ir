@@ -239,14 +239,6 @@
                               </div>
                             </div>
                             <div class="row">
-                              <div class="checkbox-field col s12" id="media_container">
-                                <label>
-                                  <input class="filled-in " id="media" name="media" type="checkbox">
-                                  <span for="media">Media</span>
-                                </label>
-                              </div>
-                            </div>
-                            <div class="row">
                               <div class="checkbox-field col s12" id="filterDuplicates_container">
                                 <label>
                                   <input class="filled-in " id="filterDuplicates" name="filterDuplicates" type="checkbox" checked="">
@@ -283,6 +275,7 @@
                                   <label for="id_topic">Topic</label>
                                   <div class="select-wrapper">
                                     <ul id="select-options-ef57fc28-0269-898c-3da3-7afb2b3f953f" class="dropdown-content select-dropdown" tabindex="0" style="">
+                                      <li id="select-options-ef57fc28-0269-898c-3da3-7afb2b3f953f0" tabindex="0"><span>None</span></li>
                                       <li id="select-options-ef57fc28-0269-898c-3da3-7afb2b3f953f0" tabindex="0"><span>All</span></li>
                                       <li id="select-options-ef57fc28-0269-898c-3da3-7afb2b3f953f1" tabindex="0"><span>Sport</span></li>
                                       <li id="select-options-ef57fc28-0269-898c-3da3-7afb2b3f953f2" tabindex="0"><span>Music</span></li>
@@ -300,7 +293,8 @@
                                       </path>
                                     </svg>
                                     <select id="id_topic" name="topic" tabindex="-1">
-                                      <option value="">All</option>
+                                      <option value="">None</option>
+                                      <option value="all">All</option>
                                       <option value="sport">Sport</option>
                                       <option value="music">Music</option>
                                       <option value="tech">Tech</option>

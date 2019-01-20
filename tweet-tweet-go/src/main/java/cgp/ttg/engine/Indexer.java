@@ -15,7 +15,9 @@ import java.nio.file.Paths;
 import java.util.List;
 
 public class Indexer {
-    public static final String INDEX_PATH = "index";
+    //public static final String INDEX_PATH = "index";
+    //public static final String USER_INDEX_PATH = "user_index";
+    public static final String INDEX_PATH = "/app/index/";
     public static final String USER_INDEX_PATH = "user_index";
     public static final FieldType tweetField = new FieldType() {{
         setTokenized(true);
